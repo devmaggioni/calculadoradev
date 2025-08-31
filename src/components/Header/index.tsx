@@ -48,6 +48,8 @@ export default function Header(props: HeaderProps) {
   };
 
   function toHomeComponent() {
+    window.location.href = '/';
+    localStorage.setItem('current-page', '0');
     renderComponent('home', props.toggleTheme, props.theme, localStorage);
   }
 
