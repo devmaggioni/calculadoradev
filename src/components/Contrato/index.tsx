@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Document,
   Page,
@@ -701,7 +700,7 @@ export default function Contrato(props: Props) {
         <PDFDownloadLink
           document={<ContractDocument />}
           fileName='contrato-desenvolvimento-software.pdf'>
-          {({ blob, url, loading, error }) => (
+          {({ loading }) => (
             <button
               style={componentStyles.downloadButton(loading)}
               disabled={loading}>

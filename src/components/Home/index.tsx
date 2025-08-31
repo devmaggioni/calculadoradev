@@ -1,8 +1,6 @@
 import type { ThemeAvailableColors } from '../../styles/theme';
 import {
   Container,
-  Header,
-  Logo,
   HeroSection,
   HeroContent,
   HeroText,
@@ -10,9 +8,7 @@ import {
   HeroSubtitle,
   ButtonGroup,
   PrimaryButton,
-  Nav,
   CTAContent,
-  SecondaryButton,
   HeroVisual,
   MockupCard,
   FeaturesSection,

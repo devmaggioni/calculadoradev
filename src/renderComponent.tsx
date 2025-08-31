@@ -16,7 +16,7 @@ export default function renderComponent(
   ls.setItem('current-component', type);
   switch (type) {
     case 'home':
-      return <Home setCurrentComponent={fun}></Home>;
+      return <Home theme={theme} setCurrentComponent={fun}></Home>;
 
     case 'contrato':
       return (
