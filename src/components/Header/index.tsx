@@ -56,6 +56,7 @@ export default function Header(props: HeaderProps) {
       <div className='add-margin' />
       <div className='wrapper'>
         <Nav
+          setCurrentComponent={props.setCurrentComponent}
           theme={props.theme}
           hasMounted={hasMounted}
           menuIsOpen={menuIsOpen}

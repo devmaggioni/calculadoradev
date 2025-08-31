@@ -18,6 +18,7 @@ export default function Nav(props: NavProps) {
 
   const handleItemClick = (index: number) => {
     localStorage.setItem('current-page', index.toString());
+    props.setCurrentComponent('home');
     setCurrentItem(index);
   };
 

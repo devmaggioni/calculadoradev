@@ -5,6 +5,7 @@ import { GlobalStyle } from './styles/GlobalStyle';
 
 import Header from './components/Header/index';
 import rcom from './renderComponent';
+import ChangeDefaultValues from './components/ChangeDefaultValues';
 export const renderComponent = rcom;
 
 // Import React Router
@@ -41,6 +42,7 @@ function App() {
       <GlobalStyle theme={defineTheme} />
       <Router>
         <Header
+          setCurrentComponent={setCurrentComponent}
           items={items}
           theme={defineTheme}
           toggleTheme={toggleTheme}
@@ -58,8 +60,11 @@ function App() {
             )}
           />
 
-          {/* Rota info */}
-          <Route path='/info' element={<h1>Hello World</h1>} />
+          {/* Rota config */}
+          <Route
+            path='/config'
+            element={<ChangeDefaultValues theme={defineTheme} />}
+          />
 
           {/* Rota 404 */}
           <Route path='*' element={<h1>Not Found</h1>} />
@@ -76,8 +81,8 @@ const items = [
     text: 'HOME',
     url: '/',
   },
-  // {
-  //   text: 'INFO',
-  //   url: '/info',
-  // },
+  {
+    text: 'config',
+    url: '/config',
+  },
 ];

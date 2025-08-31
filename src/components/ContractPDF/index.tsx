@@ -8,6 +8,7 @@ import {
 import type { ThemeAvailableColors } from '../../styles/theme';
 import { pdfStyles, componentStyles } from './styles';
 import formatToBR from '../../utils/formatToBR';
+import getCurrentDifPrice from '../../utils/getCurrentDifPrice';
 
 // Constantes para chaves do localStorage
 const STORAGE_KEYS = {
@@ -110,7 +111,10 @@ const calculateProjectTotal = (
   const hourValue = parseFloat(calculatorData.hora) || 0;
   const hoursPerDay = parseFloat(calculatorData.horasPorDia) || 0;
   const projectDays = parseFloat(calculatorData.diasDeProjeto) || 0;
-  const complexity = parseFloat(calculatorData.complexidade) || 0;
+  const complexity = getCurrentDifPrice(
+    calculatorData.complexidade,
+    localStorage,
+  );
 
   const totalHoursValue = hourValue * (hoursPerDay * projectDays);
   return totalHoursValue + complexity;
@@ -819,7 +823,7 @@ export default function Contrato({ theme }: Props) {
             ...componentStyles.headerSubtitle,
             color: theme.body.text,
           }}>
-          Documento profissional com proteções jurídicas completas
+          Modelo de Contrato
         </p>
       </header>
 

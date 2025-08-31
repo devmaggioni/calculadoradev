@@ -4,6 +4,7 @@ import html2canvas from 'html2canvas';
 import type { ThemeAvailableColors } from '../../styles/theme';
 import { Container } from './styles';
 import formatToBR from '../../utils/formatToBR';
+import getCurrentDifPrice from '../../utils/getCurrentDifPrice';
 
 // Constantes para chaves do localStorage e configurações
 const STORAGE_KEYS = {
@@ -16,12 +17,6 @@ const PDF_CONFIG = {
   PIXELS_TO_MM: 0.264583, // Conversão de pixels para milímetros
   ORIENTATION: 'p' as const,
   UNIT: 'mm' as const,
-} as const;
-
-const COMPLEXITY_PRICES: Record<string, number> = {
-  '1000': 1000,
-  '2000': 2000,
-  '3000': 3000,
 } as const;
 
 // Tipos e interfaces
@@ -103,7 +98,7 @@ const getProjectData = (): ProjectData | null => {
  * Obtém o preço baseado no nível de complexidade
  */
 const getComplexityPrice = (complexity: string): number => {
-  return COMPLEXITY_PRICES[complexity] || 0;
+  return getCurrentDifPrice(complexity, localStorage);
 };
 
 /**

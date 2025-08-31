@@ -69,6 +69,7 @@ export const PrincipalMenu = styled.ul<{
     li {
       position: relative;
       display: inline-block;
+      text-transform: uppercase;
     }
   }
 
@@ -93,6 +94,7 @@ export const PrincipalMenu = styled.ul<{
     cursor: pointer;
     display: flex;
     align-items: center;
+    text-transform: uppercase;
 
     /* === ESTADOS INTERATIVOS === */
     &:hover {
@@ -209,6 +211,7 @@ export const AsideMenu = styled.ul<{
     padding: 10px;
     cursor: pointer;
     transition: color 0.3s ease;
+    text-transform: uppercase;
 
     /* Estados interativos */
     &:hover {

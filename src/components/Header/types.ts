@@ -10,6 +10,7 @@ export interface HeaderProps {
   currentTheme: string;
   theme: ThemeAvailableColors;
   items: NavItem[];
+  setCurrentComponent: (s: string) => void;
 }
 
 export interface ChangeThemeProps {
@@ -33,4 +34,5 @@ export interface NavProps {
   asideIsOpen: boolean | null;
   theme: ThemeAvailableColors;
   items: NavItem[];
+  setCurrentComponent: (s: string) => void;
 }

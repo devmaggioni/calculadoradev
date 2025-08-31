@@ -207,9 +207,9 @@ export default function HoursForm({ theme, setCurrentComponent }: Props) {
           required
           defaultValue={storedData?.complexidade || DEFAULT_VALUES.COMPLEXITY}>
           <option value=''>Selecione...</option>
-          <option value='1000'>Fácil – HTML/CSS, landing pages</option>
-          <option value='2000'>Médio – React, SEO, libs</option>
-          <option value='3000'>
+          <option value='easy'>Fácil – HTML/CSS, landing pages</option>
+          <option value='medium'>Médio – React, SEO, libs</option>
+          <option value='hard'>
             Difícil – Projetos complexos, APIs, state management
           </option>
         </select>
