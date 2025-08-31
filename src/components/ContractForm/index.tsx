@@ -34,7 +34,7 @@ export default function InfoContrato(props: Props) {
   );
 
   function getLCData() {
-    const data = localStorage.getItem('info-contrato');
+    const data = localStorage.getItem('ContractForm');
     if (!data) return null;
     const d = JSON.parse(data);
     return {
@@ -87,9 +87,9 @@ export default function InfoContrato(props: Props) {
       descPagamento: formData.get('desc-pagamento') || '',
     };
 
-    localStorage.setItem('info-contrato', JSON.stringify(data));
+    localStorage.setItem('ContractForm', JSON.stringify(data));
     //alert(JSON.stringify(data));
-    props.setCurrentComponent('contrato');
+    props.setCurrentComponent('ContractPDF');
   };
 
   return (
@@ -304,11 +304,6 @@ export default function InfoContrato(props: Props) {
       )}
 
       <button type='submit'>Próxima etapa</button>
-      <button
-        onClick={() => props.setCurrentComponent('recibo')}
-        className='back-button'>
-        {'<-- voltar'}
-      </button>
     </Form>
   );
 }

@@ -16,7 +16,7 @@ function getDataFromLC(lc: any, name: string) {
 
 // Componente para informações das partes
 const ContractorInfo = () => {
-  const d = getDataFromLC(localStorage, 'info-contrato');
+  const d = getDataFromLC(localStorage, 'ContractForm');
   return (
     <>
       {/* CONTRATANTE */}
@@ -105,8 +105,8 @@ const Definitions = () => (
 
 // CLÁUSULA 1 — OBJETO E ESCOPO
 const Clause1 = () => {
-  const project = getDataFromLC(localStorage, 'project');
-  const calculator = getDataFromLC(localStorage, 'calculator');
+  const project = getDataFromLC(localStorage, 'ProjectForm');
+  const calculator = getDataFromLC(localStorage, 'HoursForm');
   const getValorTotal =
     parseFloat(calculator.hora) *
       (parseFloat(calculator.horasPorDia) *
@@ -222,7 +222,7 @@ const Clause2 = () => {
 
 // CLÁUSULA 3 — PREÇO E PAGAMENTO
 const Clause3 = () => {
-  const d = getDataFromLC(localStorage, 'info-contrato');
+  const d = getDataFromLC(localStorage, 'ContractForm');
   return (
     <>
       <Text style={pdfStyles.clauseTitle}>CLÁUSULA 3 — PREÇO E PAGAMENTO</Text>
@@ -463,7 +463,7 @@ const Clause10 = () => {
 
 // CLÁUSULA 11 — HOSPEDAGEM E INFRAESTRUTURA
 const Clause11 = () => {
-  const d = getDataFromLC(localStorage, 'calculator');
+  const d = getDataFromLC(localStorage, 'HoursForm');
   const valorMensalidade =
     d!.valorMensalidade &&
     parseFloat(d!.valorMensalidade).toLocaleString('pt-BR', {
@@ -613,7 +613,7 @@ const Clause16 = () => {
 
 // Componente para assinatura
 const SignatureSection = () => {
-  const d = getDataFromLC(localStorage, 'info-contrato');
+  const d = getDataFromLC(localStorage, 'ContractForm');
   return (
     <>
       <Text style={pdfStyles.paragraph}>
@@ -692,11 +692,6 @@ export default function Contrato(props: Props) {
       </header>
 
       <div style={componentStyles.buttonsSection}>
-        <button
-          className='back-button'
-          onClick={() => props.setCurrentComponent('info-contrato')}>
-          {'<-- voltar'}
-        </button>
         <PDFDownloadLink
           document={<ContractDocument />}
           fileName='contrato-desenvolvimento-software.pdf'>

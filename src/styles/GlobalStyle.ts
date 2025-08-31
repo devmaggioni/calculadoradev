@@ -36,6 +36,14 @@ export const GlobalStyle = createGlobalStyle<{ theme: ThemeAvailableColors }>`
 .back-button {
   /* Base styles */
   all: unset;
+  position: absolute;
+  justify-self: flex-start;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: center;
+  top: 0;
+  left: 0;
+  width: 100px;
   text-align: center;
   background: linear-gradient(135deg, #e74c3c, #c0392b);
   color: white;
@@ -54,6 +62,9 @@ export const GlobalStyle = createGlobalStyle<{ theme: ThemeAvailableColors }>`
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateY(0);
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  .icon {
+    margin-right: 5px;
+  }
 }
 
 .back-button::before {

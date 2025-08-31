@@ -18,6 +18,9 @@ export default function ProjectInfo(props: Props) {
   const [projectName, setProjectName] = useState('');
   const [projectDesc, setProjectDesc] = useState('');
   const [features, setFeatures] = useState<string[]>(['']);
+  const [featureKeys, setFeatureKeys] = useState<string[]>([
+    Date.now().toString(),
+  ]);
 
   // Carrega do localStorage
   useEffect(() => {
@@ -28,14 +31,22 @@ export default function ProjectInfo(props: Props) {
       const data: ProjectData = JSON.parse(saved);
       if (data.projectName) setProjectName(data.projectName);
       if (data.projectDesc) setProjectDesc(data.projectDesc);
-      if (Array.isArray(data.features) && data.features.length > 0)
+      if (Array.isArray(data.features) && data.features.length > 0) {
         setFeatures(data.features);
+        // Gera keys únicas para os itens carregados
+        setFeatureKeys(
+          data.features.map((_, index) => `${Date.now()}-${index}`),
+        );
+      }
     } catch (err) {
       console.error('Erro ao ler project do localStorage', err);
     }
   }, []);
 
-  const adicionarItem = () => setFeatures([...features, '']);
+  const adicionarItem = () => {
+    setFeatures([...features, '']);
+    setFeatureKeys([...featureKeys, Date.now().toString()]);
+  };
 
   const atualizarItem = (index: number, valor: string) => {
     const novaLista = [...features];
@@ -43,9 +54,17 @@ export default function ProjectInfo(props: Props) {
     setFeatures(novaLista);
   };
 
-  const removerItem = (index: number) => {
+  const removerItem = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    console.log('Removendo item no índice:', index);
+    console.log('Features antes:', features);
+
     const novaLista = features.filter((_, i) => i !== index);
-    setFeatures(novaLista.length > 0 ? novaLista : ['']);
+    console.log('Features depois:', novaLista);
+
+    setFeatures(novaLista);
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -57,12 +76,12 @@ export default function ProjectInfo(props: Props) {
       features: features.filter((f) => f.trim() !== ''),
     };
 
-    localStorage.setItem('project', JSON.stringify(data));
+    localStorage.setItem('ProjectForm', JSON.stringify(data));
 
-    props.setCurrentComponent('recibo');
+    props.setCurrentComponent('ReceiptPDF');
   };
 
-  const backToPrevComponent = () => props.setCurrentComponent('calculator');
+  //const backToPrevComponent = () => props.setCurrentComponent('calculator');
 
   return (
     <Form theme={props.theme} onSubmit={handleSubmit}>
@@ -94,7 +113,7 @@ export default function ProjectInfo(props: Props) {
         <label>Features do Projeto:</label>
         {features.map((item, index) => (
           <div
-            key={index}
+            key={featureKeys[index]}
             style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
             <input
               type='text'
@@ -106,7 +125,12 @@ export default function ProjectInfo(props: Props) {
             <button
               type='button'
               className='remove'
-              onClick={() => removerItem(index)}>
+              onMouseDown={(e) => removerItem(e, index)}
+              style={{
+                cursor: 'pointer',
+                pointerEvents: 'auto',
+                zIndex: 10,
+              }}>
               <IoMdCloseCircle className='icon' />
             </button>
           </div>
@@ -118,9 +142,6 @@ export default function ProjectInfo(props: Props) {
 
       <div>
         <button type='submit'>Próximo</button>
-        <button className='back-button' onClick={backToPrevComponent}>
-          {'<-- '} Voltar
-        </button>
       </div>
     </Form>
   );

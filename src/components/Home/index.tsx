@@ -65,7 +65,7 @@ export default function Home(props: Props) {
             </HeroSubtitle>
             <ButtonGroup>
               <PrimaryButton
-                onClick={() => props.setCurrentComponent('calculator')}>
+                onClick={() => props.setCurrentComponent('HoursForm')}>
                 Começar Agora - É Grátis
               </PrimaryButton>
               {/**<SecondaryButton>Ver Demo</SecondaryButton> */}
@@ -136,8 +136,7 @@ export default function Home(props: Props) {
             Junte-se a milhares de desenvolvedores que já descobriram como
             cobrar o que realmente valem.
           </p>
-          <PrimaryButton
-            onClick={() => props.setCurrentComponent('calculator')}>
+          <PrimaryButton onClick={() => props.setCurrentComponent('HoursForm')}>
             Começar Agora - É Grátis
           </PrimaryButton>
         </CTAContent>

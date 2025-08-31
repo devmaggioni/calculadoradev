@@ -28,13 +28,13 @@ type ProjectInfo = {
 
 // Utility functions
 const getCalculatorInfo = (): CalculatorInfo | null => {
-  const info = localStorage.getItem('calculator');
+  const info = localStorage.getItem('HoursForm');
   if (!info) return null;
   return JSON.parse(info) as CalculatorInfo;
 };
 
 const getProjectInfo = (): ProjectInfo | null => {
-  const info = localStorage.getItem('project');
+  const info = localStorage.getItem('ProjectForm');
   if (!info) return null;
   return JSON.parse(info) as ProjectInfo;
 };
@@ -187,17 +187,12 @@ export default function Recibo(props: Props) {
 
       {/* Container dos botões - posicionado à direita */}
       <div className='actions-container'>
-        <button
-          className='back-button'
-          onClick={() => props.setCurrentComponent('project-info')}>
-          {'<-- Voltar'}
-        </button>
         <button className='action-button' onClick={handleGeneratePDF}>
           📄 Salvar Orçamento em PDF
         </button>
         <button
           className='action-button secondary'
-          onClick={() => props.setCurrentComponent('info-contrato')}>
+          onClick={() => props.setCurrentComponent('ContractForm')}>
           📋 Emitir Contrato
         </button>
       </div>
