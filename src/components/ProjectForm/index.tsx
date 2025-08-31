@@ -252,6 +252,7 @@ export default function ProjectForm({ theme, setCurrentComponent }: Props) {
             }}>
             <input
               type='text'
+              className='feature-input'
               value={feature}
               placeholder={`Feature ${index + 1}`}
               onChange={(event) =>

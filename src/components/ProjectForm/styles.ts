@@ -16,11 +16,11 @@ export const Form = styled.form<{ theme: ThemeAvailableColors }>`
   color: ${(props) => props.theme.form.text};
 
   button.remove {
-    all: unset;
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
+    all: unset !important;
+    position: absolute !important;
+    right: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
     .icon {
       font-size: 30px;
     }
@@ -51,6 +51,9 @@ export const Form = styled.form<{ theme: ThemeAvailableColors }>`
     color: ${(props) => props.theme.form.text};
   }
 
+  .feature-input {
+    width: 100%;
+  }
   input,
   select,
   textarea {
