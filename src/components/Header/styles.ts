@@ -40,6 +40,7 @@ export const Container = styled.header<{
     img {
       width: 50px;
       cursor: pointer;
+      border-radius: 40px;
     }
   }
 `;
