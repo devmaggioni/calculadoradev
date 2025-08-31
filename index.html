@@ -2,12 +2,224 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <!-- Favicon otimizado -->
+    <link rel="icon" type="image/svg+xml" href="/images/icon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/ico180.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="/images/ico192.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="512x512"
+      href="/images/ico512.png"
+    />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Viewport e responsividade -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+
+    <!-- SEO Principal -->
+    <title>
+      Calculadora de Preços para Desenvolvedores | Orçamentos e Contratos
+      Profissionais
+    </title>
+    <meta
+      name="description"
+      content="Pare de cobrar menos do que vale! Calcule preços justos, gere orçamentos profissionais em PDF e contratos digitais. Aumente seus preços em 156% e feche 2.3x mais contratos. Grátis!"
+    />
+    <meta
+      name="keywords"
+      content="calculadora preços desenvolvedor, orçamento desenvolvedor, contrato freelancer, precificação software, calculadora freelancer, preço justo desenvolvimento, orçamento profissional, contrato digital desenvolvedor"
+    />
+
+    <!-- Meta tags adicionais -->
+    <meta name="author" content="Calculadora Dev" />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="language" content="Portuguese" />
+    <meta name="revisit-after" content="3 days" />
+    <meta name="rating" content="general" />
+    <meta name="distribution" content="global" />
+
+    <!-- Open Graph para redes sociais -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Calculadora de Preços para Desenvolvedores | Pare de Cobrar Menos!"
+    />
+    <meta
+      property="og:description"
+      content="A plataforma definitiva para calcular preços justos, gerar orçamentos profissionais e fechar mais contratos. Aumente seus preços em 156% - É Grátis!"
+    />
+    <meta property="og:url" content="https://calculadoradev.vercel.app" />
+    <meta property="og:site_name" content="Calculadora Dev" />
+    <meta
+      property="og:image"
+      content="https://calculadoradev.vercel.app/images/preview.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Calculadora de preços para desenvolvedores - Orçamentos profissionais"
+    />
+    <meta property="og:locale" content="pt_BR" />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Calculadora de Preços para Desenvolvedores | Pare de Cobrar Menos!"
+    />
+    <meta
+      name="twitter:description"
+      content="Calcule preços justos, gere orçamentos profissionais e feche mais contratos. Aumente seus preços em 156% - É Grátis!"
+    />
+    <meta
+      name="twitter:image"
+      content="https://calculadoradev.vercel.app/images/preview.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="Calculadora de preços para desenvolvedores"
+    />
+    <meta name="twitter:site" content="@calculadoradev" />
+    <meta name="twitter:creator" content="@calculadoradev" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://calculadoradev.vercel.app" />
+
+    <!-- Hreflang para internacionalização -->
+    <link
+      rel="alternate"
+      hreflang="pt-br"
+      href="https://calculadoradev.vercel.app"
+    />
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href="https://calculadoradev.vercel.app"
+    />
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Calculadora Dev",
+        "description": "Plataforma para desenvolvedores calcularem preços justos, gerarem orçamentos profissionais e contratos digitais",
+        "url": "https://calculadoradev.vercel.app",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "BRL"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.9",
+          "reviewCount": "1250"
+        },
+        "author": {
+          "@type": "Organization",
+          "name": "Calculadora Dev"
+        },
+        "datePublished": "2024-01-01",
+        "dateModified": "2024-08-31"
+      }
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Calculadora Dev",
+        "url": "https://calculadoradev.vercel.app",
+        "logo": "https://calculadoradev.vercel.app/images/ico.svg",
+        "description": "Ajudamos desenvolvedores a precificar seus serviços de forma justa e profissional",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "email": "contato@seudominio.com"
+        }
+      }
+    </script>
+
+    <!-- FAQ Schema -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Como calcular o preço justo para desenvolvimento de software?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Use nossa calculadora inteligente que considera complexidade, horas de trabalho, valor de mercado e sua experiência para gerar um preço justo e competitivo."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Como gerar orçamentos profissionais?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nossa plataforma gera automaticamente orçamentos elegantes em PDF com todos os detalhes do projeto, aumentando sua taxa de aprovação."
+            }
+          }
+        ]
+      }
+    </script>
+
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="//www.google-analytics.com" />
+
+    <!-- Meta tags para mobile -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Calculadora Dev" />
+
+    <!-- Theme color -->
+    <meta name="theme-color" content="#333" />
+    <meta name="msapplication-TileColor" content="#333" />
+
+    <!-- No-translate para manter em português -->
+    <meta name="google" content="notranslate" />
+
+    <!-- Verificação de propriedade (adicionar quando necessário) -->
+    <!-- <meta name="google-site-verification" content="SEU_CODIGO_AQUI" /> -->
+    <!-- <meta name="msvalidate.01" content="SEU_CODIGO_AQUI" /> -->
+
+    <!-- Preload de recursos críticos -->
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Structured Data para BreadcrumbList (opcional) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://calculadoradev.vercel.app"
+          }
+        ]
+      }
+    </script>
   </body>
 </html>

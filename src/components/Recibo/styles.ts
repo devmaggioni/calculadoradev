@@ -56,7 +56,6 @@ export const Container = styled.div<{
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow:
       0 4px 15px rgba(102, 126, 234, 0.3),
@@ -149,6 +148,7 @@ export const Container = styled.div<{
     display: flex;
     justify-content: center;
     max-width: calc(100% - 320px);
+    box-shadow: 1px 1px 10px ${(props) => props.theme.recibo.shadows} !important;
 
     @media screen and (max-width: 1024px) {
       max-width: 100%;
@@ -166,7 +166,6 @@ export const Container = styled.div<{
     box-shadow:
       0 20px 60px rgba(0, 0, 0, 0.1),
       0 8px 25px rgba(0, 0, 0, 0.06);
-    border-radius: 16px;
     overflow: hidden;
     font-family:
       'Inter',
@@ -234,7 +233,7 @@ export const Container = styled.div<{
       padding: 25px;
       box-shadow: 0 4px 12px ${(props) => props.theme.recibo.shadows};
       border: 2px solid ${(props) => props.theme.recibo.text};
-      border-radius: 12px;
+
       background: ${(props) => props.theme.recibo.bg};
 
       > div {
@@ -252,7 +251,7 @@ export const Container = styled.div<{
         strong {
           font-size: 16px;
           font-weight: 500;
-          color: #2d3748;
+          color: ${(props) => props.theme.recibo.text};
           flex: 1;
           display: flex;
           flex-direction: column;
@@ -291,7 +290,6 @@ export const Container = styled.div<{
           margin-right: -25px;
           padding-left: 25px;
           padding-right: 25px;
-          border-radius: 8px;
 
           strong {
             font-size: 18px;

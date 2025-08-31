@@ -28,8 +28,8 @@ export const GlobalStyle = createGlobalStyle<{ theme: ThemeAvailableColors }>`
     width: 100%;
     min-height: 100dvh;
     font-family: 'Arial', sans-serif;
-    background-color: rgba(0,0,0,.3);
-    color: white;
+    background-color: ${(props) => props.theme.body.bg};
+    color: ${(props) => props.theme.body.text};
     //transition: color, background-color .4s ease-in;
   }
 

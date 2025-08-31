@@ -41,9 +41,9 @@ const getProjectInfo = (): ProjectInfo | null => {
 
 const getPriceForLevel = (level: string): number => {
   const priceMap: Record<string, number> = {
-    easy: 1000,
-    medium: 2000,
-    hard: 3000,
+    '1000': 1000,
+    '2000': 2000,
+    '3000': 3000,
   };
   return priceMap[level] || 0;
 };

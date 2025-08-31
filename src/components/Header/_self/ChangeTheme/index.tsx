@@ -5,7 +5,7 @@ export default function ChangeTheme(props: ChangeThemeProps) {
   const isLightTheme = props.currentTheme === 'light';
 
   return (
-    <Container mobileBreakPoint={props.mobileBreakPoint}>
+    <Container $mobileBreakPoint={props.mobileBreakPoint}>
       <input
         checked={isLightTheme}
         onChange={props.toggleTheme}

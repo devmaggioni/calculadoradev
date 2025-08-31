@@ -47,7 +47,7 @@ export const darkTheme: ThemeAvailableColors = {
     text: '#f5f5f5',
     title: '#f5f5f5',
     textOnHover: 'rgba(255,255,255,.3)',
-    textOnActive: 'rgba(142, 181, 233, 0.45)',
+    textOnActive: 'rgba(246, 152, 255, 0.45)',
   },
   form: {
     bg: '#333',

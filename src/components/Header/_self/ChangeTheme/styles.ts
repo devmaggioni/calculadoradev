@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 export const Container = styled.div<{
-  mobileBreakPoint: number;
+  $mobileBreakPoint: number;
 }>`
   position: relative;
   font-size: 17px;

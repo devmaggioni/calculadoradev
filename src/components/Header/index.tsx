@@ -67,7 +67,7 @@ export default function Header(props: HeaderProps) {
 
         <div className='align-left'>
           <a onClick={toHomeComponent} href='/'>
-            <img src='/images/logo.png' alt='Logo' />
+            <img src='/images/ico.svg' alt='Logo' />
           </a>
         </div>
 

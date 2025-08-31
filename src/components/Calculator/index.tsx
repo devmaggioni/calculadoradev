@@ -54,6 +54,10 @@ export default function Calculator(props: Props) {
   return (
     <Form theme={props.theme} onSubmit={handleSubmit}>
       <div>
+        <h3>
+          Insira as informações corretamente para que possamos calcular o preço
+          do seu serviço!
+        </h3>
         <label htmlFor='hora'>Qual o valor da sua hora?</label>
         <input
           type='number'

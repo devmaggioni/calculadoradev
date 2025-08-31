@@ -10,7 +10,7 @@ export default function Hamburguer(props: HamburguerProps) {
   };
 
   return (
-    <Container mobileBreakPoint={props.mobileBreakPoint}>
+    <Container $mobileBreakPoint={props.mobileBreakPoint}>
       <label className='hamburger'>
         <input
           checked={props.menuIsOpen}

@@ -67,6 +67,7 @@ export default function ProjectInfo(props: Props) {
   return (
     <Form theme={props.theme} onSubmit={handleSubmit}>
       <div>
+        <h3>Complete as informações do Projeto!</h3>
         <label htmlFor='project-name'>Nome do Projeto</label>
         <input
           required

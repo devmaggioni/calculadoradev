@@ -94,10 +94,10 @@ export default function InfoContrato(props: Props) {
 
   return (
     <Form theme={props.theme} onSubmit={handleSubmit}>
-      <h1>
+      <h3>
         Bora emitir o contrato! Precisamos das infos para que o contrato fique
         completo:
-      </h1>
+      </h3>
 
       <div>
         <label htmlFor='nome-prestador'>
@@ -282,7 +282,7 @@ export default function InfoContrato(props: Props) {
           onChange={handleCheckboxPag}>
           <option value=''>Selecione...</option>
           <option value='40/60'>40/60</option>
-          <option value='50/50'>40/60</option>
+          <option value='50/50'>50/50</option>
           <option value='outro'>outro</option>
         </select>
       </div>
@@ -303,7 +303,12 @@ export default function InfoContrato(props: Props) {
         </div>
       )}
 
-      <button type='submit'>pa</button>
+      <button type='submit'>Próxima etapa</button>
+      <button
+        onClick={() => props.setCurrentComponent('recibo')}
+        className='back-button'>
+        {'<-- voltar'}
+      </button>
     </Form>
   );
 }

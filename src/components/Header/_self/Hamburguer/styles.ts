@@ -2,9 +2,9 @@ import styled from 'styled-components';
 
 /* From Uiverse.io by JulanDeAlb */
 export const Container = styled.div<{
-  mobileBreakPoint: number;
+  $mobileBreakPoint: number;
 }>`
-  @media screen and (max-width: ${(props) => props.mobileBreakPoint}px) {
+  @media screen and (max-width: ${(props) => props.$mobileBreakPoint}px) {
     display: block;
   }
   display: none;

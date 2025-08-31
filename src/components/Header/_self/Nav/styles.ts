@@ -26,10 +26,10 @@ export const Container = styled.nav<{
  * No mobile: transforma em menu lateral com animações
  */
 export const PrincipalMenu = styled.ul<{
-  mobileBreakPoint: number;
-  menuIsOpen: boolean;
-  hasMounted: boolean;
-  asideIsOpen: boolean | null;
+  $mobileBreakPoint: number;
+  $menuIsOpen: boolean;
+  $hasMounted: boolean;
+  $asideIsOpen: boolean | null;
   theme: ThemeAvailableColors;
 }>`
   /* === RESPONSIVIDADE DESKTOP === */
@@ -45,14 +45,14 @@ export const PrincipalMenu = styled.ul<{
   }
 
   /* === COMPORTAMENTO MOBILE === */
-  @media screen and (max-width: ${(props) => props.mobileBreakPoint}px) {
+  @media screen and (max-width: ${(props) => props.$mobileBreakPoint}px) {
     /* Controla exibição: oculta se não foi montado e está fechado */
     display: ${(props) =>
-      (!props.hasMounted && !props.menuIsOpen && 'none') || 'flex'};
+      (!props.$hasMounted && !props.$menuIsOpen && 'none') || 'flex'};
 
     /* Aplica animações de abertura/fechamento do menu */
     ${(props) => css`
-      animation: ${!props.menuIsOpen ? hideMenu : showMenu} 0.6s ease-in
+      animation: ${!props.$menuIsOpen ? hideMenu : showMenu} 0.6s ease-in
         forwards;
     `}
 
@@ -81,7 +81,7 @@ export const PrincipalMenu = styled.ul<{
   /* === ESTILOS DOS ITENS DE MENU === */
   li {
     /* Oculta itens extras no desktop (após o 6º item) */
-    @media screen and (min-width: ${(props) => props.mobileBreakPoint}px) {
+    @media screen and (min-width: ${(props) => props.$mobileBreakPoint}px) {
       &:nth-child(n + 6) {
         display: none;
       }
@@ -106,7 +106,7 @@ export const PrincipalMenu = styled.ul<{
     /* === INDICADOR VISUAL (linha embaixo) === */
     &::after {
       /* Posicionamento no mobile */
-      @media screen and (max-width: ${(props) => props.mobileBreakPoint}px) {
+      @media screen and (max-width: ${(props) => props.$mobileBreakPoint}px) {
         left: 15px;
         bottom: -5px;
       }
@@ -126,7 +126,7 @@ export const PrincipalMenu = styled.ul<{
 
     /* Expansão da linha no hover */
     &:hover::after {
-      @media screen and (max-width: ${(props) => props.mobileBreakPoint}px) {
+      @media screen and (max-width: ${(props) => props.$mobileBreakPoint}px) {
         width: 25%; /* Menor no mobile */
       }
       width: 100%; /* Largura total no desktop */
@@ -134,7 +134,7 @@ export const PrincipalMenu = styled.ul<{
 
     /* Linha do item ativo */
     &.current-item::after {
-      @media screen and (max-width: ${(props) => props.mobileBreakPoint}px) {
+      @media screen and (max-width: ${(props) => props.$mobileBreakPoint}px) {
         width: 25%;
       }
       width: 100%;
@@ -155,13 +155,13 @@ export const PrincipalMenu = styled.ul<{
  * Inclui animações de deslizamento lateral
  */
 export const AsideMenu = styled.ul<{
-  mobileBreakPoint: number;
-  asideIsOpen: boolean | null;
-  menuIsOpen: boolean;
+  $mobileBreakPoint: number;
+  $asideIsOpen: boolean | null;
+  $menuIsOpen: boolean;
   theme: ThemeAvailableColors;
 }>`
   /* Oculta no mobile */
-  @media screen and (max-width: ${(props) => props.mobileBreakPoint}px) {
+  @media screen and (max-width: ${(props) => props.$mobileBreakPoint}px) {
     display: none;
   }
 
@@ -180,10 +180,10 @@ export const AsideMenu = styled.ul<{
 
   /* === ANIMAÇÕES DE ABERTURA/FECHAMENTO === */
   ${(props) =>
-    (props.asideIsOpen !== null &&
+    (props.$asideIsOpen !== null &&
       css`
         /* Anima baseado no estado (aberto/fechado) */
-        animation: ${!props.asideIsOpen ? hideAsideMenu : showAsideMenu} 0.6s
+        animation: ${!props.$asideIsOpen ? hideAsideMenu : showAsideMenu} 0.6s
           ease forwards;
       `) ||
     css`
@@ -235,7 +235,7 @@ export const AsideMenu = styled.ul<{
 
     /* Expansão no hover */
     &:hover::after {
-      @media screen and (max-width: ${(props) => props.mobileBreakPoint}px) {
+      @media screen and (max-width: ${(props) => props.$mobileBreakPoint}px) {
         width: 20%;
       }
       width: 30%; /* Menor que o menu principal */
@@ -243,7 +243,7 @@ export const AsideMenu = styled.ul<{
 
     /* Indicador do item ativo */
     &.current-item::after {
-      @media screen and (max-width: ${(props) => props.mobileBreakPoint}px) {
+      @media screen and (max-width: ${(props) => props.$mobileBreakPoint}px) {
         width: 20%;
       }
       width: 30%;

@@ -1,20 +1,14 @@
 import { useState } from 'react';
 import { ThemeProvider } from 'styled-components';
-import {
-  lightTheme,
-  darkTheme,
-  type ThemeAvailableColors,
-} from './styles/theme';
+import { lightTheme, darkTheme } from './styles/theme';
 import { GlobalStyle } from './styles/GlobalStyle';
 
 import Header from './components/Header/index';
-import Main from './components/Wrapper';
-import Calculator from './components/Calculator';
-import Home from './components/Home';
-import Recibo from './components/Recibo';
-import ProjectInfo from './components/ProjectInfo';
-import Contrato from './components/Contrato';
-import InfoContrato from './components/ContratoInfo';
+import rcom from './renderComponent';
+export const renderComponent = rcom;
+
+// Import React Router
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
   const lsvar = 'current-app-theme';
@@ -26,6 +20,10 @@ function App() {
 
   function setCurrentComponent(component: string) {
     setComponent(component);
+    window.scrollTo({
+      top: 0, // posição do topo
+      behavior: 'smooth', // animação suave
+    });
   }
 
   const toggleTheme = () => {
@@ -41,102 +39,45 @@ function App() {
   return (
     <ThemeProvider theme={defineTheme}>
       <GlobalStyle theme={defineTheme} />
-      <Header
-        items={items}
-        theme={defineTheme}
-        toggleTheme={toggleTheme}
-        currentTheme={theme}
-      />
-      {renderComponent(
-        currentComponent,
-        setCurrentComponent,
-        defineTheme,
-        localStorage,
-      )}
+      <Router>
+        <Header
+          items={items}
+          theme={defineTheme}
+          toggleTheme={toggleTheme}
+          currentTheme={theme}
+        />
+        <Routes>
+          {/* Rota principal */}
+          <Route
+            path='/'
+            element={renderComponent(
+              currentComponent,
+              setCurrentComponent,
+              defineTheme,
+              localStorage,
+            )}
+          />
+
+          {/* Rota info */}
+          <Route path='/info' element={<h1>Hello World</h1>} />
+
+          {/* Rota 404 */}
+          <Route path='*' element={<h1>Not Found</h1>} />
+        </Routes>
+      </Router>
     </ThemeProvider>
   );
-}
-
-export function renderComponent(
-  type: string,
-  fun: (s: string) => void,
-  theme: ThemeAvailableColors,
-  ls: any,
-) {
-  ls.setItem('current-component', type);
-  switch (type) {
-    case 'home':
-      return <Home setCurrentComponent={fun}></Home>;
-
-    case 'contrato':
-      return (
-        <Main theme={theme} snippets='flex:center'>
-          <Contrato theme={theme} setCurrentComponent={fun}></Contrato>
-        </Main>
-      );
-
-    case 'info-contrato':
-      return (
-        <Main theme={theme} snippets='flex:center'>
-          <InfoContrato theme={theme} setCurrentComponent={fun}></InfoContrato>
-        </Main>
-      );
-
-    case 'calculator':
-      return (
-        <Main theme={theme} snippets='flex:center'>
-          <Calculator setCurrentComponent={fun} theme={theme}></Calculator>
-        </Main>
-      );
-
-    case 'project-info':
-      return (
-        <Main theme={theme} snippets='flex:center'>
-          <ProjectInfo theme={theme} setCurrentComponent={fun}></ProjectInfo>
-        </Main>
-      );
-
-    case 'recibo':
-      return (
-        <Main theme={theme} snippets='flex:center'>
-          <Recibo theme={theme} setCurrentComponent={fun}></Recibo>;
-        </Main>
-      );
-
-    default:
-      return <></>;
-  }
 }
 
 export default App;
 
 const items = [
   {
-    text: '1',
+    text: 'HOME',
     url: '/',
   },
-  {
-    text: '2',
-    url: '/',
-  },
-  {
-    text: '3',
-    url: '/',
-  },
-  {
-    text: '4',
-    url: '/',
-  },
-  {
-    text: '5',
-    url: '/',
-  },
-  {
-    text: '6',
-    url: '/',
-  },
-  {
-    text: '7',
-    url: '/',
-  },
+  // {
+  //   text: 'INFO',
+  //   url: '/info',
+  // },
 ];
