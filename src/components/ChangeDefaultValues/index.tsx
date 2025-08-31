@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ThemeAvailableColors } from '../../styles/theme';
 import { Form } from './styles';
 import getCurrentDifPrice from '../../utils/getCurrentDifPrice';
+import Modal from '../Modal';
 
 // Tipos e interfaces
 type Props = {
@@ -14,6 +15,8 @@ export default function ChangeDefaultValues({ theme }: Props) {
     medium: '',
     hard: '',
   });
+
+  const [showModal, setShowModal] = useState(false);
 
   // Carrega os valores salvos no localStorage quando o componente monta
   useEffect(() => {
@@ -45,49 +48,56 @@ export default function ChangeDefaultValues({ theme }: Props) {
     localStorage.setItem('c_hard', values.hard);
 
     // Opcional: mostrar mensagem de sucesso ou fazer algo após salvar
-    console.log('Valores salvos com sucesso!');
+    setShowModal(!showModal);
   };
 
   return (
-    <Form theme={theme} onSubmit={handleSubmit}>
-      <h3>Alterar valores padrão de cálculo</h3>
-      <div>
-        <label htmlFor='easy'>Valor fixo projetos "fáceis"</label>
-        <input
-          type='number'
-          name='easy'
-          id='easy'
-          min={1}
-          required
-          value={values.easy}
-          onChange={handleInputChange}
-        />
-      </div>
-      <div>
-        <label htmlFor='medium'>Valor fixo projetos "médios"</label>
-        <input
-          type='number'
-          name='medium'
-          id='medium'
-          min={1}
-          required
-          value={values.medium}
-          onChange={handleInputChange}
-        />
-      </div>
-      <div>
-        <label htmlFor='hard'>Valor fixo projetos "difíceis"</label>
-        <input
-          type='number'
-          name='hard'
-          id='hard'
-          min={1}
-          required
-          value={values.hard}
-          onChange={handleInputChange}
-        />
-      </div>
-      <button type='submit'>Salvar Alterações</button>
-    </Form>
+    <>
+      <Modal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        message='Salvo com sucesso ✔️'
+      />
+      <Form theme={theme} onSubmit={handleSubmit}>
+        <h3>Alterar valores padrão de cálculo</h3>
+        <div>
+          <label htmlFor='easy'>Valor fixo projetos "fáceis"</label>
+          <input
+            type='number'
+            name='easy'
+            id='easy'
+            min={1}
+            required
+            value={values.easy}
+            onChange={handleInputChange}
+          />
+        </div>
+        <div>
+          <label htmlFor='medium'>Valor fixo projetos "médios"</label>
+          <input
+            type='number'
+            name='medium'
+            id='medium'
+            min={1}
+            required
+            value={values.medium}
+            onChange={handleInputChange}
+          />
+        </div>
+        <div>
+          <label htmlFor='hard'>Valor fixo projetos "difíceis"</label>
+          <input
+            type='number'
+            name='hard'
+            id='hard'
+            min={1}
+            required
+            value={values.hard}
+            onChange={handleInputChange}
+          />
+        </div>
+        <button type='submit'>Salvar Alterações</button>
+      </Form>
+    </>
   );
 }

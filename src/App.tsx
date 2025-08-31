@@ -5,6 +5,7 @@ import { GlobalStyle } from './styles/GlobalStyle';
 
 import Header from './components/Header/index';
 import Wrapper from './components/Wrapper';
+import Page404 from './components/Page404';
 import rcom from './renderComponent';
 import ChangeDefaultValues from './components/ChangeDefaultValues';
 export const renderComponent = rcom;
@@ -72,7 +73,7 @@ function App() {
           />
 
           {/* Rota 404 */}
-          <Route path='*' element={<h1>Not Found</h1>} />
+          <Route path='*' element={<Page404 />} />
         </Routes>
       </Router>
     </ThemeProvider>
