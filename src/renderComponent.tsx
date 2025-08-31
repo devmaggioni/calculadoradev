@@ -1,5 +1,5 @@
 import type { ThemeAvailableColors } from './styles/theme';
-import Main from './components/Wrapper';
+import Wrapper from './components/Wrapper';
 import Calculator from './components/HoursForm';
 import Home from './components/Home';
 import Recibo from './components/ReceiptPDF';
@@ -41,11 +41,11 @@ export default function renderComponent(
             setCurrentComponent={setCurrentComponent}
             to={'ContractForm'}
           />
-          <Main theme={theme} snippets='flex:center'>
+          <Wrapper theme={theme} snippets='flex:center'>
             <Contrato
               theme={theme}
               setCurrentComponent={setCurrentComponent}></Contrato>
-          </Main>
+          </Wrapper>
         </>
       );
 
@@ -56,11 +56,11 @@ export default function renderComponent(
             setCurrentComponent={setCurrentComponent}
             to={'ReceiptPDF'}
           />
-          <Main theme={theme} snippets='flex:center'>
+          <Wrapper theme={theme} snippets='flex:center'>
             <InfoContrato
               theme={theme}
               setCurrentComponent={setCurrentComponent}></InfoContrato>
-          </Main>
+          </Wrapper>
         </>
       );
 
@@ -68,11 +68,11 @@ export default function renderComponent(
       return (
         <>
           <BackButton setCurrentComponent={setCurrentComponent} to={'home'} />
-          <Main theme={theme} snippets='flex:center'>
+          <Wrapper theme={theme} snippets='flex:center'>
             <Calculator
               setCurrentComponent={setCurrentComponent}
               theme={theme}></Calculator>
-          </Main>
+          </Wrapper>
         </>
       );
 
@@ -83,11 +83,11 @@ export default function renderComponent(
             setCurrentComponent={setCurrentComponent}
             to={'HoursForm'}
           />
-          <Main theme={theme} snippets='flex:center'>
+          <Wrapper theme={theme} snippets='flex:center'>
             <ProjectInfo
               theme={theme}
               setCurrentComponent={setCurrentComponent}></ProjectInfo>
-          </Main>
+          </Wrapper>
         </>
       );
 
@@ -98,11 +98,11 @@ export default function renderComponent(
             setCurrentComponent={setCurrentComponent}
             to={'ProjectForm'}
           />
-          <Main theme={theme} snippets='flex:center'>
+          <Wrapper theme={theme} snippets='flex:center'>
             <Recibo
               theme={theme}
               setCurrentComponent={setCurrentComponent}></Recibo>
-          </Main>
+          </Wrapper>
         </>
       );
 

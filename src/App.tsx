@@ -4,6 +4,7 @@ import { lightTheme, darkTheme } from './styles/theme';
 import { GlobalStyle } from './styles/GlobalStyle';
 
 import Header from './components/Header/index';
+import Wrapper from './components/Wrapper';
 import rcom from './renderComponent';
 import ChangeDefaultValues from './components/ChangeDefaultValues';
 export const renderComponent = rcom;
@@ -63,7 +64,11 @@ function App() {
           {/* Rota config */}
           <Route
             path='/config'
-            element={<ChangeDefaultValues theme={defineTheme} />}
+            element={
+              <Wrapper theme={defineTheme} snippets='flex:center'>
+                <ChangeDefaultValues theme={defineTheme} />
+              </Wrapper>
+            }
           />
 
           {/* Rota 404 */}
