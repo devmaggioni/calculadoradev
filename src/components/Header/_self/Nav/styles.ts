@@ -65,6 +65,7 @@ export const PrincipalMenu = styled.ul<{
     width: 70%;
     padding: 60px 40px;
     height: 100vh;
+    box-shadow: -1px 30px 20px ${(props) => props.theme.header.shadows};
 
     li {
       position: relative;

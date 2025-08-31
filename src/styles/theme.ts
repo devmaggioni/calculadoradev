@@ -15,6 +15,7 @@ export const lightTheme: ThemeAvailableColors = {
     title: '#333',
     textOnHover: 'rgba(0,0,0,.3)',
     textOnActive: 'rgba(110, 4, 248, 0.45)',
+    shadows: 'rgba(0,0,0, .2)',
   },
   form: {
     bg: '#f5f5f5',
@@ -48,6 +49,7 @@ export const darkTheme: ThemeAvailableColors = {
     title: '#f5f5f5',
     textOnHover: 'rgba(255,255,255,.3)',
     textOnActive: 'rgba(246, 152, 255, 0.45)',
+    shadows: 'rgba(255,255,255, 0.05)',
   },
   form: {
     bg: '#333',
@@ -80,6 +82,7 @@ export type ThemeAvailableColors = {
     title: string;
     textOnHover: string;
     textOnActive: string;
+    shadows: string;
   };
   form: {
     bg: string;
