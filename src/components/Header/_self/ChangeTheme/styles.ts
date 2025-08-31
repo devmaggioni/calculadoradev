@@ -1,30 +1,6 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
-type Props = {
-  mobileBreakPoint: number;
-  currentTheme: string;
-  toggleTheme: () => void;
-};
-export default function ChangeTheme(props: Props) {
-  return (
-    <Container mobileBreakPoint={props.mobileBreakPoint}>
-      <input
-        checked={props.currentTheme === "light" ? true : false}
-        onClick={() => props.toggleTheme()}
-        type="checkbox"
-      />
-      <span className="slider"></span>
-    </Container>
-  );
-}
-
-/*
-************
-styles
-************
-*/
-
-const Container = styled.div<{
+export const Container = styled.div<{
   mobileBreakPoint: number;
 }>`
   position: relative;
@@ -61,7 +37,7 @@ const Container = styled.div<{
 
   .slider:before {
     position: absolute;
-    content: "";
+    content: '';
     height: 1.4em;
     width: 1.4em;
     border-radius: 50%;
