@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import type { ThemeAvailableColors } from '../../styles/theme';
 import { Container } from './styles';
+import formatToBR from '../../utils/formatToBR';
 
 // Types
 type Props = {
@@ -135,7 +136,7 @@ export default function Recibo(props: Props) {
       <div className='values'>
         <div>
           <strong>- Mão de obra ({totalHours} horas):</strong>
-          <p>R$ {priceForHours}</p>
+          <p>{formatToBR(priceForHours)}</p>
         </div>
 
         <div>
@@ -144,12 +145,12 @@ export default function Recibo(props: Props) {
             <span>- Desenvolvimento</span>
             <span>- Testes</span>
           </strong>
-          <p>R$ {priceForLevel}</p>
+          <p>{formatToBR(priceForLevel)}</p>
         </div>
 
         <div className='total'>
-          <strong>Valor Total pelo Desenvolvimento:</strong>
-          <p>R$ {totalDevelopmentValue}</p>
+          <strong>Valor Total do Desenvolvimento:</strong>
+          <p>{formatToBR(totalDevelopmentValue)}</p>
         </div>
       </div>
     );

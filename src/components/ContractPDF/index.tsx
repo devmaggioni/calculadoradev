@@ -7,6 +7,7 @@ import {
 } from '@react-pdf/renderer';
 import type { ThemeAvailableColors } from '../../styles/theme';
 import { pdfStyles, componentStyles } from './styles';
+import formatToBR from '../../utils/formatToBR';
 
 function getDataFromLC(lc: any, name: string) {
   const data = lc.getItem(name);
@@ -112,17 +113,8 @@ const Clause1 = () => {
       (parseFloat(calculator.horasPorDia) *
         parseFloat(calculator.diasDeProjeto)) +
     parseFloat(calculator.complexidade);
-  const valorTotalFormatado = getValorTotal.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
-  const valorHorasExtras = parseFloat(calculator.horaExtra).toLocaleString(
-    'pt-BR',
-    {
-      style: 'currency',
-      currency: 'BRL',
-    },
-  );
+  const valorTotalFormatado = formatToBR(getValorTotal);
+  const valorHorasExtras = formatToBR(calculator.horaExtra);
 
   return (
     <>
@@ -465,11 +457,7 @@ const Clause10 = () => {
 const Clause11 = () => {
   const d = getDataFromLC(localStorage, 'HoursForm');
   const valorMensalidade =
-    d!.valorMensalidade &&
-    parseFloat(d!.valorMensalidade).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
+    d!.valorMensalidade && formatToBR(d!.valorMensalidade);
   return (
     <>
       <Text style={pdfStyles.clauseTitle}>
@@ -746,9 +734,8 @@ export default function Contrato(props: Props) {
         <p style={componentStyles.warningText}>
           LEIA O CONTRATO ANTES DE ASSINAR! Edite conforme suas necessidades.
           Recomendamos a análise de um advogado especializado antes de fechar
-          negócios. Não nos responsabilizamos por mal uso ou erros ocasionados
-          por falta de conferência, esse documento é apenas um modelo, e deve
-          ser lapidado por você.
+          negócios. Esse documento é apenas um modelo, e deve ser lapidado por
+          você.
         </p>
       </div>
     </div>
