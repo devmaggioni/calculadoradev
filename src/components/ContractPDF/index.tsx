@@ -803,7 +803,7 @@ const ContractDocument = () => (
 /**
  * Componente principal para interface de geração do contrato
  */
-export default function Contrato({ setCurrentComponent, theme }: Props) {
+export default function Contrato({ theme }: Props) {
   return (
     <div style={componentStyles.container}>
       <header style={componentStyles.header}>
