@@ -2,12 +2,22 @@ import type { ThemeAvailableColors } from '../../styles/theme';
 import { Form } from './styles';
 import { useState, useMemo } from 'react';
 
+// Constantes para chaves do localStorage
+const STORAGE_KEYS = {
+  CONTRACT_FORM: 'ContractForm',
+  CLIENT_IS_CNPJ: 'cliente-iscnpj',
+} as const;
+
+// Tipos e interfaces
 type Props = {
   theme: ThemeAvailableColors;
   setCurrentComponent: (s: string) => void;
 };
 
-export interface InfoContratoData {
+/**
+ * Interface que define a estrutura dos dados do contrato
+ */
+export interface ContractFormData {
   nomePrestador: string;
   docPrestador: string;
   profissaoPrestador: string;
@@ -25,80 +35,171 @@ export interface InfoContratoData {
   descPagamento: string;
 }
 
-export default function InfoContrato(props: Props) {
-  const lcData = useMemo(getLCData, []);
+/**
+ * Utilitário para gerenciar dados do localStorage de forma segura
+ */
+const localStorageUtils = {
+  /**
+   * Obtém dados do localStorage com tratamento de erro
+   */
+  getItem: (key: string): string | null => {
+    try {
+      return localStorage?.getItem(key) || null;
+    } catch (error) {
+      console.warn(`Erro ao acessar localStorage para chave "${key}":`, error);
+      return null;
+    }
+  },
 
-  const [checkboxPag, setCheckboxPag] = useState(!!lcData?.descPagamento);
-  const [checkboxClientePJ, setCheckboxClientePJ] = useState(
-    localStorage.getItem('cliente-iscnpj') === 'true',
-  );
+  /**
+   * Salva dados no localStorage com tratamento de erro
+   */
+  setItem: (key: string, value: string): boolean => {
+    try {
+      localStorage?.setItem(key, value);
+      return true;
+    } catch (error) {
+      console.warn(
+        `Erro ao salvar no localStorage para chave "${key}":`,
+        error,
+      );
+      return false;
+    }
+  },
+};
 
-  function getLCData() {
-    const data = localStorage.getItem('ContractForm');
-    if (!data) return null;
-    const d = JSON.parse(data);
-    return {
-      nomePrestador: d.nomePrestador || '',
-      docPrestador: d.docPrestador || '',
-      profissaoPrestador: d.profissaoPrestador || '',
-      enderecoPrestador: d.enderecoPrestador || '',
-      local: d.local || '',
-      nomeCliente: d.nomeCliente || '',
-      docCliente: d.docCliente || '',
-      profissaoCliente: d.profissaoCliente || '',
-      enderecoCliente: d.enderecoCliente || '',
-      isCnpjClient: d.isCnpjClient || false,
-      cnpjClienteNome: d.cnpjClienteNome || '',
-      cnpjCliente: d.cnpjCliente || '',
-      cnpjClienteEndereco: d.cnpjClienteEndereco || '',
-      pagamento: d.pagamento || '',
-      descPagamento: d.descPagamento || '',
-    };
+/**
+ * Recupera dados salvos do formulário de contrato
+ */
+const getStoredContractData = (): ContractFormData | null => {
+  const storedData = localStorageUtils.getItem(STORAGE_KEYS.CONTRACT_FORM);
+
+  if (!storedData) {
+    return null;
   }
 
-  const handleCheckBoxClient = (e: React.ChangeEvent<HTMLInputElement>) => {
-    localStorage.setItem('cliente-iscnpj', String(e.target.checked));
-    setCheckboxClientePJ(e.target.checked);
+  try {
+    const parsedData = JSON.parse(storedData);
+
+    // Retorna dados com valores padrão para garantir consistência
+    return {
+      nomePrestador: parsedData.nomePrestador || '',
+      docPrestador: parsedData.docPrestador || '',
+      profissaoPrestador: parsedData.profissaoPrestador || '',
+      enderecoPrestador: parsedData.enderecoPrestador || '',
+      local: parsedData.local || '',
+      nomeCliente: parsedData.nomeCliente || '',
+      docCliente: parsedData.docCliente || '',
+      profissaoCliente: parsedData.profissaoCliente || '',
+      enderecoCliente: parsedData.enderecoCliente || '',
+      isCnpjClient: parsedData.isCnpjClient || false,
+      cnpjClienteNome: parsedData.cnpjClienteNome || '',
+      cnpjCliente: parsedData.cnpjCliente || '',
+      cnpjClienteEndereco: parsedData.cnpjClienteEndereco || '',
+      pagamento: parsedData.pagamento || '',
+      descPagamento: parsedData.descPagamento || '',
+    };
+  } catch (error) {
+    console.warn('Erro ao fazer parse dos dados do contrato:', error);
+    return null;
+  }
+};
+
+/**
+ * Verifica se o cliente é pessoa jurídica baseado no localStorage
+ */
+const getIsClientCnpj = (): boolean => {
+  const storedValue = localStorageUtils.getItem(STORAGE_KEYS.CLIENT_IS_CNPJ);
+  return storedValue === 'true';
+};
+
+/**
+ * Componente para coleta de informações do contrato
+ */
+export default function ContractForm({ theme, setCurrentComponent }: Props) {
+  // Memoriza os dados salvos para evitar re-computação desnecessária
+  const storedContractData = useMemo(() => getStoredContractData(), []);
+
+  // Estados do componente
+  const [isPaymentDescriptionEnabled, setIsPaymentDescriptionEnabled] =
+    useState(!!storedContractData?.descPagamento);
+
+  const [isClientCnpj, setIsClientCnpj] = useState(() => getIsClientCnpj());
+
+  /**
+   * Manipula mudança no checkbox de pessoa jurídica
+   */
+  const handleClientTypeChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const { checked } = event.target;
+
+    localStorageUtils.setItem(STORAGE_KEYS.CLIENT_IS_CNPJ, String(checked));
+    setIsClientCnpj(checked);
   };
 
-  const handleCheckboxPag = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCheckboxPag(e.target.value === 'outro');
+  /**
+   * Manipula mudança no select de pagamento
+   */
+  const handlePaymentMethodChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    const isCustomPayment = event.target.value === 'outro';
+    setIsPaymentDescriptionEnabled(isCustomPayment);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  /**
+   * Processa e salva os dados do formulário
+   */
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      nomePrestador: formData.get('nome-prestador') || '',
-      docPrestador: formData.get('doc-prestador') || '',
-      profissaoPrestador: formData.get('profissao-prestador') || '',
-      enderecoPrestador: formData.get('endereco-prestador') || '',
-      local: formData.get('local') || '',
-      nomeCliente: formData.get('nome-cliente') || '',
-      docCliente: formData.get('doc-cliente') || '',
-      profissaoCliente: formData.get('profissao-cliente') || '',
-      enderecoCliente: formData.get('endereco-cliente') || '',
+    const formData = new FormData(event.currentTarget);
+
+    // Constrói objeto com dados do formulário
+    const contractData: ContractFormData = {
+      nomePrestador: (formData.get('nome-prestador') as string) || '',
+      docPrestador: (formData.get('doc-prestador') as string) || '',
+      profissaoPrestador: (formData.get('profissao-prestador') as string) || '',
+      enderecoPrestador: (formData.get('endereco-prestador') as string) || '',
+      local: (formData.get('local') as string) || '',
+      nomeCliente: (formData.get('nome-cliente') as string) || '',
+      docCliente: (formData.get('doc-cliente') as string) || '',
+      profissaoCliente: (formData.get('profissao-cliente') as string) || '',
+      enderecoCliente: (formData.get('endereco-cliente') as string) || '',
       isCnpjClient: !!formData.get('cliente-iscnpj'),
-      cnpjClienteNome: formData.get('cliente-nomecnpj') || '',
-      cnpjCliente: formData.get('cnpj-cliente') || '',
-      cnpjClienteEndereco: formData.get('cliente-cnpj-endereco') || '',
-      pagamento: formData.get('pagamento') || '',
-      descPagamento: formData.get('desc-pagamento') || '',
+      cnpjClienteNome: (formData.get('cliente-nomecnpj') as string) || '',
+      cnpjCliente: (formData.get('cnpj-cliente') as string) || '',
+      cnpjClienteEndereco:
+        (formData.get('cliente-cnpj-endereco') as string) || '',
+      pagamento: (formData.get('pagamento') as string) || '',
+      descPagamento: (formData.get('desc-pagamento') as string) || '',
     };
 
-    localStorage.setItem('ContractForm', JSON.stringify(data));
-    //alert(JSON.stringify(data));
-    props.setCurrentComponent('ContractPDF');
+    // Salva dados no localStorage
+    const success = localStorageUtils.setItem(
+      STORAGE_KEYS.CONTRACT_FORM,
+      JSON.stringify(contractData),
+    );
+
+    if (success) {
+      // Navega para próxima etapa
+      setCurrentComponent('ContractPDF');
+    } else {
+      // Em caso de erro, ainda permite navegar (fallback)
+      console.warn('Erro ao salvar dados, mas prosseguindo...');
+      setCurrentComponent('ContractPDF');
+    }
   };
 
   return (
-    <Form theme={props.theme} onSubmit={handleSubmit}>
+    <Form theme={theme} onSubmit={handleSubmit}>
       <h3>
         Bora emitir o contrato! Precisamos das infos para que o contrato fique
         completo:
       </h3>
 
+      {/* Seção: Dados do Prestador */}
       <div>
         <label htmlFor='nome-prestador'>
           Qual seu nome ou nome de sua empresa?
@@ -109,7 +210,7 @@ export default function InfoContrato(props: Props) {
           id='nome-prestador'
           required
           placeholder='Não use apelidos ou abreviações'
-          defaultValue={lcData?.nomePrestador}
+          defaultValue={storedContractData?.nomePrestador}
         />
       </div>
 
@@ -121,7 +222,7 @@ export default function InfoContrato(props: Props) {
           id='doc-prestador'
           required
           placeholder='00.000.000-0000-0'
-          defaultValue={lcData?.docPrestador}
+          defaultValue={storedContractData?.docPrestador}
         />
       </div>
 
@@ -133,7 +234,7 @@ export default function InfoContrato(props: Props) {
           id='profissao-prestador'
           required
           placeholder='Pedreiro de Software'
-          defaultValue={lcData?.profissaoPrestador}
+          defaultValue={storedContractData?.profissaoPrestador}
         />
       </div>
 
@@ -145,7 +246,7 @@ export default function InfoContrato(props: Props) {
           id='endereco-prestador'
           required
           placeholder='Rua Coda Fofo, Bairro Lateral, Florianópolis-SC'
-          defaultValue={lcData?.enderecoPrestador}
+          defaultValue={storedContractData?.enderecoPrestador}
         />
       </div>
 
@@ -159,10 +260,11 @@ export default function InfoContrato(props: Props) {
           id='local'
           required
           placeholder='Florianópolis-SC'
-          defaultValue={lcData?.local}
+          defaultValue={storedContractData?.local}
         />
       </div>
 
+      {/* Seção: Dados do Cliente */}
       <div>
         <label htmlFor='nome-cliente'>Nome completo do seu cliente</label>
         <input
@@ -171,7 +273,7 @@ export default function InfoContrato(props: Props) {
           id='nome-cliente'
           required
           placeholder='Fulano de Tal ME'
-          defaultValue={lcData?.nomeCliente}
+          defaultValue={storedContractData?.nomeCliente}
         />
       </div>
 
@@ -183,7 +285,7 @@ export default function InfoContrato(props: Props) {
           id='doc-cliente'
           required
           placeholder='000.000.000-00'
-          defaultValue={lcData?.docCliente}
+          defaultValue={storedContractData?.docCliente}
         />
       </div>
 
@@ -197,7 +299,7 @@ export default function InfoContrato(props: Props) {
           id='profissao-cliente'
           required
           placeholder='Empresário'
-          defaultValue={lcData?.profissaoCliente}
+          defaultValue={storedContractData?.profissaoCliente}
         />
       </div>
 
@@ -209,10 +311,11 @@ export default function InfoContrato(props: Props) {
           id='endereco-cliente'
           required
           placeholder='Rua XYZ, Bairro 12, Florianópolis-SC'
-          defaultValue={lcData?.enderecoCliente}
+          defaultValue={storedContractData?.enderecoCliente}
         />
       </div>
 
+      {/* Checkbox: Cliente é Pessoa Jurídica */}
       <div>
         <label htmlFor='cliente-iscnpj'>
           Cliente é Pessoa Jurídica?
@@ -220,13 +323,14 @@ export default function InfoContrato(props: Props) {
             type='checkbox'
             id='cliente-iscnpj'
             name='cliente-iscnpj'
-            checked={checkboxClientePJ}
-            onChange={handleCheckBoxClient}
+            checked={isClientCnpj}
+            onChange={handleClientTypeChange}
           />
         </label>
       </div>
 
-      {checkboxClientePJ && (
+      {/* Campos condicionais: Dados da Pessoa Jurídica */}
+      {isClientCnpj && (
         <>
           <div>
             <label htmlFor='cliente-nomecnpj'>
@@ -238,7 +342,7 @@ export default function InfoContrato(props: Props) {
               id='cliente-nomecnpj'
               required
               placeholder='Jubileu Confecções LTDA'
-              defaultValue={lcData?.cnpjClienteNome}
+              defaultValue={storedContractData?.cnpjClienteNome}
             />
           </div>
 
@@ -252,7 +356,7 @@ export default function InfoContrato(props: Props) {
               id='cnpj-cliente'
               required
               placeholder='00.000.000/0000-00'
-              defaultValue={lcData?.cnpjCliente}
+              defaultValue={storedContractData?.cnpjCliente}
             />
           </div>
 
@@ -266,20 +370,21 @@ export default function InfoContrato(props: Props) {
               id='cliente-cnpj-endereco'
               required
               placeholder='Rua Tal, Bairro Qualquer, Florianópolis-SC'
-              defaultValue={lcData?.cnpjClienteEndereco}
+              defaultValue={storedContractData?.cnpjClienteEndereco}
             />
           </div>
         </>
       )}
 
+      {/* Seção: Forma de Pagamento */}
       <div>
         <label htmlFor='pagamento'>Como vai ser o pagamento?</label>
         <select
           name='pagamento'
           id='pagamento'
           required
-          defaultValue={lcData?.pagamento}
-          onChange={handleCheckboxPag}>
+          defaultValue={storedContractData?.pagamento}
+          onChange={handlePaymentMethodChange}>
           <option value=''>Selecione...</option>
           <option value='40/60'>40/60</option>
           <option value='50/50'>50/50</option>
@@ -287,7 +392,8 @@ export default function InfoContrato(props: Props) {
         </select>
       </div>
 
-      {checkboxPag && (
+      {/* Campo condicional: Descrição personalizada do pagamento */}
+      {isPaymentDescriptionEnabled && (
         <div>
           <label htmlFor='desc-pagamento'>
             Descreva como vai ser o pagamento
@@ -298,7 +404,7 @@ export default function InfoContrato(props: Props) {
             id='desc-pagamento'
             required
             placeholder='Ex: "30% de entrada, e 70% na hora da entrega"'
-            defaultValue={lcData?.descPagamento}
+            defaultValue={storedContractData?.descPagamento}
           />
         </div>
       )}

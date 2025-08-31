@@ -1,17 +1,39 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import type { ThemeAvailableColors } from '../../styles/theme';
 import { Container } from './styles';
 import formatToBR from '../../utils/formatToBR';
 
-// Types
+// Constantes para chaves do localStorage e configurações
+const STORAGE_KEYS = {
+  HOURS_FORM: 'HoursForm',
+  PROJECT_FORM: 'ProjectForm',
+} as const;
+
+const PDF_CONFIG = {
+  SCALE: 2,
+  PIXELS_TO_MM: 0.264583, // Conversão de pixels para milímetros
+  ORIENTATION: 'p' as const,
+  UNIT: 'mm' as const,
+} as const;
+
+const COMPLEXITY_PRICES: Record<string, number> = {
+  '1000': 1000,
+  '2000': 2000,
+  '3000': 3000,
+} as const;
+
+// Tipos e interfaces
 type Props = {
   setCurrentComponent: (s: string) => void;
   theme: ThemeAvailableColors;
 };
 
-type CalculatorInfo = {
+/**
+ * Interface que define a estrutura dos dados do calculador
+ */
+interface CalculatorData {
   hora: number;
   horaExtra: number;
   complexidade: string;
@@ -19,124 +41,229 @@ type CalculatorInfo = {
   horasPorDia: number;
   cobrarMensalidade: boolean;
   valorMensalidade: number;
-};
+}
 
-type ProjectInfo = {
+/**
+ * Interface que define a estrutura dos dados do projeto
+ */
+interface ProjectData {
   projectName: string;
   projectDesc: string | null;
   features: string[];
+}
+
+/**
+ * Interface para os cálculos de valores do projeto
+ */
+interface ProjectCalculations {
+  totalHours: number;
+  priceForHours: number;
+  priceForComplexity: number;
+  totalDevelopmentValue: number;
+}
+
+/**
+ * Utilitário para gerenciar dados do localStorage de forma segura
+ */
+const localStorageUtils = {
+  /**
+   * Obtém e faz parse de dados JSON do localStorage
+   */
+  getData: <T = any,>(key: string): T | null => {
+    try {
+      const data = localStorage?.getItem(key);
+      if (!data) return null;
+
+      return JSON.parse(data) as T;
+    } catch (error) {
+      console.warn(
+        `Erro ao acessar dados do localStorage para chave "${key}":`,
+        error,
+      );
+      return null;
+    }
+  },
 };
 
-// Utility functions
-const getCalculatorInfo = (): CalculatorInfo | null => {
-  const info = localStorage.getItem('HoursForm');
-  if (!info) return null;
-  return JSON.parse(info) as CalculatorInfo;
+/**
+ * Obtém dados do calculador com tratamento de erro
+ */
+const getCalculatorData = (): CalculatorData | null => {
+  return localStorageUtils.getData<CalculatorData>(STORAGE_KEYS.HOURS_FORM);
 };
 
-const getProjectInfo = (): ProjectInfo | null => {
-  const info = localStorage.getItem('ProjectForm');
-  if (!info) return null;
-  return JSON.parse(info) as ProjectInfo;
+/**
+ * Obtém dados do projeto com tratamento de erro
+ */
+const getProjectData = (): ProjectData | null => {
+  return localStorageUtils.getData<ProjectData>(STORAGE_KEYS.PROJECT_FORM);
 };
 
-const getPriceForLevel = (level: string): number => {
-  const priceMap: Record<string, number> = {
-    '1000': 1000,
-    '2000': 2000,
-    '3000': 3000,
+/**
+ * Obtém o preço baseado no nível de complexidade
+ */
+const getComplexityPrice = (complexity: string): number => {
+  return COMPLEXITY_PRICES[complexity] || 0;
+};
+
+/**
+ * Calcula todos os valores relacionados ao projeto
+ */
+const calculateProjectValues = (
+  calculatorData: CalculatorData | null,
+): ProjectCalculations => {
+  if (!calculatorData) {
+    return {
+      totalHours: 0,
+      priceForHours: 0,
+      priceForComplexity: 0,
+      totalDevelopmentValue: 0,
+    };
+  }
+
+  const totalHours = calculatorData.horasPorDia * calculatorData.diasDeProjeto;
+  const priceForHours = calculatorData.hora * totalHours;
+  const priceForComplexity = getComplexityPrice(calculatorData.complexidade);
+  const totalDevelopmentValue = priceForHours + priceForComplexity;
+
+  return {
+    totalHours,
+    priceForHours,
+    priceForComplexity,
+    totalDevelopmentValue,
   };
-  return priceMap[level] || 0;
 };
 
-// Main component
-export default function Recibo(props: Props) {
+/**
+ * Gera o PDF do orçamento
+ */
+const generateBudgetPDF = async (
+  element: HTMLDivElement,
+  projectName: string,
+): Promise<void> => {
+  try {
+    // Captura o elemento com html2canvas
+    const canvas = await html2canvas(element, {
+      scale: PDF_CONFIG.SCALE,
+      useCORS: true,
+    });
+
+    const imageData = canvas.toDataURL('image/png');
+
+    // Calcula dimensões do PDF baseadas no canvas
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+
+    const pdfWidth = canvasWidth * PDF_CONFIG.PIXELS_TO_MM;
+    const pdfHeight = canvasHeight * PDF_CONFIG.PIXELS_TO_MM;
+
+    // Cria o PDF com tamanho dinâmico
+    const pdf = new jsPDF({
+      orientation: PDF_CONFIG.ORIENTATION,
+      unit: PDF_CONFIG.UNIT,
+      format: [pdfWidth, pdfHeight],
+    });
+
+    // Adiciona a imagem ao PDF
+    pdf.addImage(imageData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+    // Salva o arquivo
+    const fileName = `orçamento-do-projeto-${projectName}.pdf`;
+    pdf.save(fileName);
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error);
+    // Poderia mostrar uma notificação de erro ao usuário aqui
+    alert('Erro ao gerar o PDF. Tente novamente.');
+  }
+};
+
+/**
+ * Componente principal para exibição do orçamento
+ */
+export default function Recibo({ setCurrentComponent, theme }: Props) {
   const componentRef = useRef<HTMLDivElement>(null);
 
-  // Data calculations
-  const calculatorInfo = getCalculatorInfo();
-  const projectInfo = getProjectInfo();
+  // Obtém dados necessários usando memoização
+  const calculatorData = useMemo(() => getCalculatorData(), []);
+  const projectData = useMemo(() => getProjectData(), []);
 
-  const priceForLevel = calculatorInfo
-    ? getPriceForLevel(calculatorInfo.complexidade)
-    : 0;
-
-  const totalHours = calculatorInfo
-    ? calculatorInfo.horasPorDia * calculatorInfo.diasDeProjeto
-    : 0;
-
-  const priceForHours = calculatorInfo ? calculatorInfo.hora * totalHours : 0;
-
-  const totalDevelopmentValue = priceForLevel + priceForHours;
-
-  // PDF generation handler
-  const handleGeneratePDF = async () => {
-    if (!componentRef.current || !projectInfo) return;
-
-    try {
-      // Captura o componente com html2canvas
-      const canvas = await html2canvas(componentRef.current, {
-        scale: 2,
-        useCORS: true,
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-
-      // Calcula dimensões reais do componente
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-
-      // Converte pixels do canvas para mm (jsPDF usa mm)
-      const pdfWidth = imgWidth * 0.264583; // 1px ≈ 0.264583 mm
-      const pdfHeight = imgHeight * 0.264583;
-
-      // Cria o PDF com altura dinâmica
-      const pdf = new jsPDF({
-        orientation: 'p',
-        unit: 'mm',
-        format: [pdfWidth, pdfHeight], // página única do tamanho exato do componente
-      });
-
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`orçamento-do-projeto-${projectInfo.projectName}.pdf`);
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-    }
-  };
-
-  // Render project information section
-  const renderProjectInfo = () => (
-    <>
-      <div>
-        <strong>Projeto:</strong>
-        <p>{projectInfo?.projectName}</p>
-      </div>
-
-      {projectInfo?.projectDesc && (
-        <div>
-          <strong>Descrição:</strong>
-          <p>{projectInfo.projectDesc}</p>
-        </div>
-      )}
-
-      {projectInfo?.features && projectInfo.features.length > 0 && (
-        <div>
-          <strong>Features:</strong>
-          <p>{projectInfo.features.join(', ')}</p>
-        </div>
-      )}
-    </>
+  // Calcula valores do projeto
+  const calculations = useMemo(
+    () => calculateProjectValues(calculatorData),
+    [calculatorData],
   );
 
-  // Render values section
+  /**
+   * Manipula a geração do PDF
+   */
+  const handleGeneratePDF = async () => {
+    if (!componentRef.current || !projectData) {
+      console.warn(
+        'Elemento de referência ou dados do projeto não disponíveis',
+      );
+      return;
+    }
+
+    await generateBudgetPDF(componentRef.current, projectData.projectName);
+  };
+
+  /**
+   * Renderiza as informações do projeto
+   */
+  const renderProjectInfo = () => {
+    if (!projectData) {
+      return (
+        <div>
+          <strong>Erro:</strong>
+          <p>Dados do projeto não encontrados</p>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div>
+          <strong>Projeto:</strong>
+          <p>{projectData.projectName}</p>
+        </div>
+
+        {projectData.projectDesc && (
+          <div>
+            <strong>Descrição:</strong>
+            <p>{projectData.projectDesc}</p>
+          </div>
+        )}
+
+        {projectData.features && projectData.features.length > 0 && (
+          <div>
+            <strong>Features:</strong>
+            <p>{projectData.features.join(', ')}</p>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  /**
+   * Renderiza a seção de valores do desenvolvimento
+   */
   const renderValuesSection = () => {
-    if (!calculatorInfo) return null;
+    if (!calculatorData) {
+      return (
+        <div className='values'>
+          <div>
+            <strong>Erro:</strong>
+            <p>Dados do calculador não encontrados</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className='values'>
         <div>
-          <strong>- Mão de obra ({totalHours} horas):</strong>
-          <p>{formatToBR(priceForHours)}</p>
+          <strong>- Mão de obra ({calculations.totalHours} horas):</strong>
+          <p>{formatToBR(calculations.priceForHours)}</p>
         </div>
 
         <div>
@@ -145,55 +272,70 @@ export default function Recibo(props: Props) {
             <span>- Desenvolvimento</span>
             <span>- Testes</span>
           </strong>
-          <p>{formatToBR(priceForLevel)}</p>
+          <p>{formatToBR(calculations.priceForComplexity)}</p>
         </div>
 
         <div className='total'>
           <strong>Valor Total do Desenvolvimento:</strong>
-          <p>{formatToBR(totalDevelopmentValue)}</p>
+          <p>{formatToBR(calculations.totalDevelopmentValue)}</p>
         </div>
       </div>
     );
   };
 
-  // Render additional costs section
+  /**
+   * Renderiza os custos adicionais (hospedagem)
+   */
   const renderAdditionalCosts = () => {
-    if (!calculatorInfo?.valorMensalidade) return null;
+    if (
+      !calculatorData?.cobrarMensalidade ||
+      !calculatorData?.valorMensalidade
+    ) {
+      return null;
+    }
 
     return (
       <div>
         <strong>Adicionais (hospedagem):</strong>
-        <p>R$ {calculatorInfo.valorMensalidade} cobrado mensalmente</p>
+        <p>{formatToBR(calculatorData.valorMensalidade)} cobrado mensalmente</p>
       </div>
     );
   };
 
   return (
-    <Container theme={props.theme}>
+    <Container theme={theme}>
       {/* Container do conteúdo principal */}
       <div className='content-wrapper'>
         <div ref={componentRef} className='content'>
           <h2>Orçamento:</h2>
 
-          {/* Project Information */}
+          {/* Informações do projeto */}
           {renderProjectInfo()}
 
-          {/* Values Section */}
+          {/* Seção de valores */}
           {renderValuesSection()}
 
-          {/* Additional Costs */}
+          {/* Custos adicionais */}
           {renderAdditionalCosts()}
         </div>
       </div>
 
-      {/* Container dos botões - posicionado à direita */}
+      {/* Container dos botões de ação */}
       <div className='actions-container'>
-        <button className='action-button' onClick={handleGeneratePDF}>
+        <button
+          className='action-button'
+          onClick={handleGeneratePDF}
+          disabled={!projectData}
+          title={
+            !projectData
+              ? 'Dados do projeto não disponíveis'
+              : 'Gerar PDF do orçamento'
+          }>
           📄 Salvar Orçamento em PDF
         </button>
         <button
           className='action-button secondary'
-          onClick={() => props.setCurrentComponent('ContractForm')}>
+          onClick={() => setCurrentComponent('ContractForm')}>
           📋 Emitir Contrato
         </button>
       </div>

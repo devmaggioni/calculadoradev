@@ -9,66 +9,205 @@ import type { ThemeAvailableColors } from '../../styles/theme';
 import { pdfStyles, componentStyles } from './styles';
 import formatToBR from '../../utils/formatToBR';
 
-function getDataFromLC(lc: any, name: string) {
-  const data = lc.getItem(name);
-  if (!data) return null;
-  return JSON.parse(data) as any;
+// Constantes para chaves do localStorage
+const STORAGE_KEYS = {
+  CONTRACT_FORM: 'ContractForm',
+  PROJECT_FORM: 'ProjectForm',
+  HOURS_FORM: 'HoursForm',
+} as const;
+
+// Tipos e interfaces
+type Props = {
+  setCurrentComponent: (s: string) => void;
+  theme: ThemeAvailableColors;
+};
+
+interface ContractData {
+  nomeCliente: string;
+  docCliente: string;
+  profissaoCliente: string;
+  enderecoCliente: string;
+  isCnpjClient: boolean;
+  cnpjClienteNome: string;
+  cnpjCliente: string;
+  cnpjClienteEndereco: string;
+  nomePrestador: string;
+  docPrestador: string;
+  profissaoPrestador: string;
+  enderecoPrestador: string;
+  local: string;
+  pagamento: string;
+  descPagamento: string;
 }
 
-// Componente para informações das partes
+interface ProjectData {
+  projectName: string;
+  features: string[];
+}
+
+interface CalculatorData {
+  hora: string;
+  horasPorDia: string;
+  diasDeProjeto: string;
+  complexidade: string;
+  horaExtra: string;
+  cobrarMensalidade: boolean;
+  valorMensalidade?: string;
+}
+
+/**
+ * Utilitário para acessar dados do localStorage de forma segura
+ */
+const storageUtils = {
+  /**
+   * Obtém e faz parse de dados JSON do localStorage
+   */
+  getData: <T = any,>(key: string): T | null => {
+    try {
+      const data = localStorage?.getItem(key);
+      if (!data) return null;
+
+      return JSON.parse(data) as T;
+    } catch (error) {
+      console.warn(
+        `Erro ao acessar dados do localStorage para chave "${key}":`,
+        error,
+      );
+      return null;
+    }
+  },
+};
+
+/**
+ * Obtém dados do contrato com tratamento de erro
+ */
+const getContractData = (): ContractData | null => {
+  return storageUtils.getData<ContractData>(STORAGE_KEYS.CONTRACT_FORM);
+};
+
+/**
+ * Obtém dados do projeto com tratamento de erro
+ */
+const getProjectData = (): ProjectData | null => {
+  return storageUtils.getData<ProjectData>(STORAGE_KEYS.PROJECT_FORM);
+};
+
+/**
+ * Obtém dados do calculador de horas com tratamento de erro
+ */
+const getCalculatorData = (): CalculatorData | null => {
+  return storageUtils.getData<CalculatorData>(STORAGE_KEYS.HOURS_FORM);
+};
+
+/**
+ * Calcula o valor total do projeto com base nas horas e complexidade
+ */
+const calculateProjectTotal = (
+  calculatorData: CalculatorData | null,
+): number => {
+  if (!calculatorData) return 0;
+
+  const hourValue = parseFloat(calculatorData.hora) || 0;
+  const hoursPerDay = parseFloat(calculatorData.horasPorDia) || 0;
+  const projectDays = parseFloat(calculatorData.diasDeProjeto) || 0;
+  const complexity = parseFloat(calculatorData.complexidade) || 0;
+
+  const totalHoursValue = hourValue * (hoursPerDay * projectDays);
+  return totalHoursValue + complexity;
+};
+
+/**
+ * Determina a forma de pagamento baseada nos dados do contrato
+ */
+const getPaymentDescription = (contractData: ContractData | null): string => {
+  if (!contractData?.pagamento) return '';
+
+  switch (contractData.pagamento) {
+    case '40/60':
+      return '40% de entrada, e 60% na hora da entrega.';
+    case '50/50':
+      return '50% de entrada, e 50% na hora da entrega.';
+    default:
+      return contractData.descPagamento || '';
+  }
+};
+
+/**
+ * Componente para informações das partes contratantes
+ */
 const ContractorInfo = () => {
-  const d = getDataFromLC(localStorage, 'ContractForm');
+  const contractData = getContractData();
+
+  if (!contractData) {
+    return <Text>Dados do contrato não encontrados</Text>;
+  }
+
   return (
     <>
       {/* CONTRATANTE */}
       <View style={pdfStyles.contractorSection}>
         <Text style={pdfStyles.contractorInfo}>
-          <Text style={pdfStyles.bold}>CONTRATANTE:</Text> {d?.nomeCliente}
+          <Text style={pdfStyles.bold}>CONTRATANTE:</Text>{' '}
+          {contractData.nomeCliente}
         </Text>
         <Text style={pdfStyles.contractorInfo}>
-          <Text style={pdfStyles.bold}>CNPJ/CPF:</Text> {d?.docCliente}
+          <Text style={pdfStyles.bold}>CNPJ/CPF:</Text>{' '}
+          {contractData.docCliente}
         </Text>
         <Text style={pdfStyles.contractorInfo}>
-          <Text style={pdfStyles.bold}>Profissão:</Text> {d?.profissaoCliente}
+          <Text style={pdfStyles.bold}>Profissão:</Text>{' '}
+          {contractData.profissaoCliente}
         </Text>
         <Text style={pdfStyles.contractorInfo}>
-          <Text style={pdfStyles.bold}>Endereço:</Text> {d?.enderecoCliente}
+          <Text style={pdfStyles.bold}>Endereço:</Text>{' '}
+          {contractData.enderecoCliente}
         </Text>
-        {d?.isCnpjClient && (
+
+        {/* Informações adicionais para pessoa jurídica */}
+        {contractData.isCnpjClient && (
           <>
             <Text style={pdfStyles.contractorInfo}>
-              <Text style={pdfStyles.bold}>Empresa:</Text> {d.cnpjClienteNome}
+              <Text style={pdfStyles.bold}>Empresa:</Text>{' '}
+              {contractData.cnpjClienteNome}
             </Text>
             <Text style={pdfStyles.contractorInfo}>
-              <Text style={pdfStyles.bold}>CNPJ:</Text> {d.cnpjCliente}
+              <Text style={pdfStyles.bold}>CNPJ:</Text>{' '}
+              {contractData.cnpjCliente}
             </Text>
             <Text style={pdfStyles.contractorInfo}>
               <Text style={pdfStyles.bold}>Endereço da Empresa:</Text>{' '}
-              {d.cnpjClienteEndereco}
+              {contractData.cnpjClienteEndereco}
             </Text>
           </>
         )}
       </View>
+
       {/* CONTRATADO */}
       <View style={pdfStyles.contractorSection}>
         <Text style={pdfStyles.contractorInfo}>
-          <Text style={pdfStyles.bold}>CONTRATADO:</Text> {d?.nomePrestador}
+          <Text style={pdfStyles.bold}>CONTRATADO:</Text>{' '}
+          {contractData.nomePrestador}
         </Text>
         <Text style={pdfStyles.contractorInfo}>
-          <Text style={pdfStyles.bold}>CNPJ/CPF:</Text> {d?.docPrestador}
+          <Text style={pdfStyles.bold}>CNPJ/CPF:</Text>{' '}
+          {contractData.docPrestador}
         </Text>
         <Text style={pdfStyles.contractorInfo}>
-          <Text style={pdfStyles.bold}>Profissão:</Text> {d?.profissaoPrestador}
+          <Text style={pdfStyles.bold}>Profissão:</Text>{' '}
+          {contractData.profissaoPrestador}
         </Text>
         <Text style={pdfStyles.contractorInfo}>
-          <Text style={pdfStyles.bold}>Endereço:</Text> {d?.enderecoPrestador}
+          <Text style={pdfStyles.bold}>Endereço:</Text>{' '}
+          {contractData.enderecoPrestador}
         </Text>
       </View>
     </>
   );
 };
 
-// Componente para definições
+/**
+ * Componente para definições e termos técnicos
+ */
 const Definitions = () => (
   <>
     <Text style={pdfStyles.subtitle}>DEFINIÇÕES</Text>
@@ -104,17 +243,25 @@ const Definitions = () => (
   </>
 );
 
-// CLÁUSULA 1 — OBJETO E ESCOPO
+/**
+ * CLÁUSULA 1 — OBJETO E ESCOPO
+ */
 const Clause1 = () => {
-  const project = getDataFromLC(localStorage, 'ProjectForm');
-  const calculator = getDataFromLC(localStorage, 'HoursForm');
-  const getValorTotal =
-    parseFloat(calculator.hora) *
-      (parseFloat(calculator.horasPorDia) *
-        parseFloat(calculator.diasDeProjeto)) +
-    parseFloat(calculator.complexidade);
-  const valorTotalFormatado = formatToBR(getValorTotal);
-  const valorHorasExtras = formatToBR(calculator.horaExtra);
+  const projectData = getProjectData();
+  const calculatorData = getCalculatorData();
+
+  if (!projectData || !calculatorData) {
+    return <Text>Dados do projeto não encontrados</Text>;
+  }
+
+  const totalValue = calculateProjectTotal(calculatorData);
+  const formattedTotalValue = formatToBR(totalValue);
+  const formattedExtraHourValue = formatToBR(
+    parseFloat(calculatorData.horaExtra) || 0,
+  );
+  const totalHours =
+    (parseFloat(calculatorData.diasDeProjeto) || 0) *
+    (parseFloat(calculatorData.horasPorDia) || 0);
 
   return (
     <>
@@ -128,35 +275,33 @@ const Clause1 = () => {
         1.2 <Text style={pdfStyles.bold}>ESPECIFICAÇÕES DO PROJETO:</Text>
       </Text>
       <Text style={pdfStyles.listItem}>
-        • <Text style={pdfStyles.bold}>Nome do Projeto:</Text>
-        {project!.projectName}
+        • <Text style={pdfStyles.bold}>Nome do Projeto:</Text>{' '}
+        {projectData.projectName}
       </Text>
       <Text style={pdfStyles.listItem}>
-        • <Text style={pdfStyles.bold}>Valor Total:</Text> {valorTotalFormatado}
+        • <Text style={pdfStyles.bold}>Valor Total:</Text> {formattedTotalValue}
       </Text>
       <Text style={pdfStyles.listItem}>
-        • <Text style={pdfStyles.bold}>Prazo:</Text> {calculator.diasDeProjeto}{' '}
-        dias úteis
+        • <Text style={pdfStyles.bold}>Prazo:</Text>{' '}
+        {calculatorData.diasDeProjeto} dias úteis
       </Text>
       <Text style={pdfStyles.listItem}>
         • <Text style={pdfStyles.bold}>Valor/Hora para Extras:</Text>{' '}
-        {valorHorasExtras}
+        {formattedExtraHourValue}
       </Text>
       <Text style={pdfStyles.listItem}>
-        • <Text style={pdfStyles.bold}>Horas Previstas:</Text>{' '}
-        {calculator.diasDeProjeto * calculator.horasPorDia} horas
+        • <Text style={pdfStyles.bold}>Horas Previstas:</Text> {totalHours}{' '}
+        horas
       </Text>
       <Text style={pdfStyles.paragraph}>
         1.3 <Text style={pdfStyles.bold}>FUNCIONALIDADES INCLUÍDAS:</Text>
       </Text>
-      {(project.features as []) &&
-        project.features.map((item: string, index: number) => {
-          return (
-            <Text key={index} style={pdfStyles.listItem}>
-              • <Text style={pdfStyles.bold}>{index}:</Text> {item}
-            </Text>
-          );
-        })}
+      {projectData.features &&
+        projectData.features.map((feature: string, index: number) => (
+          <Text key={index} style={pdfStyles.listItem}>
+            • <Text style={pdfStyles.bold}>{index + 1}:</Text> {feature}
+          </Text>
+        ))}
       <Text style={pdfStyles.paragraph}>
         1.4 <Text style={pdfStyles.bold}>ESCOPO DEFINIDO:</Text> O escopo do
         projeto compreende exclusivamente as funcionalidades listadas acima.
@@ -174,47 +319,50 @@ const Clause1 = () => {
   );
 };
 
-// CLÁUSULA 2 — PRAZO, ENTREGA E ACEITE
-const Clause2 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>
-        CLÁUSULA 2 — PRAZO, ENTREGA E ACEITE
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        2.1 O prazo de entrega é contado a partir do pagamento da primeira
-        parcela e da disponibilização de todos os materiais necessários pelo
-        CONTRATANTE, podendo ser prorrogado por alterações de escopo, atraso no
-        envio de materiais ou circunstâncias de força maior.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        2.2 <Text style={pdfStyles.bold}>FORNECIMENTO DE MATERIAIS:</Text> O
-        CONTRATANTE compromete-se a fornecer todos os materiais necessários
-        (logos, textos, credenciais, especificações) em até 5 dias úteis após
-        assinatura. O atraso superior a 7 dias poderá suspender o cronograma até
-        regularização. Após 20 dias de suspensão, qualquer das partes poderá
-        rescindir o contrato.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        2.3 <Text style={pdfStyles.bold}>ENTREGA INCLUIRÁ:</Text> (a) software
-        funcional conforme especificado; (b) documentação básica de uso; (c)
-        código-fonte quando acordado; (d) estrutura de banco de dados.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        2.4 <Text style={pdfStyles.bold}>PROCESSO DE ACEITE:</Text> Após
-        notificação de entrega, o CONTRATANTE terá 7 dias úteis para análise e
-        manifestação. Eventuais rejeições devem ser fundamentadas e específicas,
-        indicando os pontos não atendidos com base nas especificações
-        contratuais. Não havendo manifestação no prazo, considera-se aceite
-        tácito.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 2 — PRAZO, ENTREGA E ACEITE
+ */
+const Clause2 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>
+      CLÁUSULA 2 — PRAZO, ENTREGA E ACEITE
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      2.1 O prazo de entrega é contado a partir do pagamento da primeira parcela
+      e da disponibilização de todos os materiais necessários pelo CONTRATANTE,
+      podendo ser prorrogado por alterações de escopo, atraso no envio de
+      materiais ou circunstâncias de força maior.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      2.2 <Text style={pdfStyles.bold}>FORNECIMENTO DE MATERIAIS:</Text> O
+      CONTRATANTE compromete-se a fornecer todos os materiais necessários
+      (logos, textos, credenciais, especificações) em até 5 dias úteis após
+      assinatura. O atraso superior a 7 dias poderá suspender o cronograma até
+      regularização. Após 20 dias de suspensão, qualquer das partes poderá
+      rescindir o contrato.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      2.3 <Text style={pdfStyles.bold}>ENTREGA INCLUIRÁ:</Text> (a) software
+      funcional conforme especificado; (b) documentação básica de uso; (c)
+      código-fonte quando acordado; (d) estrutura de banco de dados.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      2.4 <Text style={pdfStyles.bold}>PROCESSO DE ACEITE:</Text> Após
+      notificação de entrega, o CONTRATANTE terá 7 dias úteis para análise e
+      manifestação. Eventuais rejeições devem ser fundamentadas e específicas,
+      indicando os pontos não atendidos com base nas especificações contratuais.
+      Não havendo manifestação no prazo, considera-se aceite tácito.
+    </Text>
+  </>
+);
 
-// CLÁUSULA 3 — PREÇO E PAGAMENTO
+/**
+ * CLÁUSULA 3 — PREÇO E PAGAMENTO
+ */
 const Clause3 = () => {
-  const d = getDataFromLC(localStorage, 'ContractForm');
+  const contractData = getContractData();
+  const paymentDescription = getPaymentDescription(contractData);
+
   return (
     <>
       <Text style={pdfStyles.clauseTitle}>CLÁUSULA 3 — PREÇO E PAGAMENTO</Text>
@@ -225,12 +373,8 @@ const Clause3 = () => {
         •{' '}
         <Text style={pdfStyles.bold}>
           A forma de pagamento se dará da seguinte forma:
-        </Text>
-        {(d!.pagamento === '40/60' &&
-          '40% de entrada, e 60% na hora da entrega.') ||
-          (d!.pagamento === '50/50' &&
-            '50% de entrada, e 50% na hora da entrega.') ||
-          d!.descPagamento}
+        </Text>{' '}
+        {paymentDescription}
       </Text>
       <Text style={pdfStyles.listItem}>
         • <Text style={pdfStyles.bold}>Projetos superiores a 45 dias:</Text>{' '}
@@ -251,223 +395,224 @@ const Clause3 = () => {
   );
 };
 
-// CLÁUSULA 4 — GARANTIA E SUPORTE
-const Clause4 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>CLÁUSULA 4 — GARANTIA E SUPORTE</Text>
-      <Text style={pdfStyles.paragraph}>
-        4.1 <Text style={pdfStyles.bold}>GARANTIA TÉCNICA:</Text> 60 dias
-        corridos após aceite final, limitada à correção de defeitos de
-        funcionamento conforme especificações originais do projeto.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        4.2 <Text style={pdfStyles.bold}>EXCLUSÕES DA GARANTIA:</Text>{' '}
-        Modificações realizadas por terceiros, instalação em ambiente
-        inadequado, uso fora das especificações originais ou problemas
-        decorrentes de atualizações de terceiros.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        4.3 <Text style={pdfStyles.bold}>SUPORTE GRATUITO:</Text> Limitado a
-        correções de bugs comprovados, até 2 horas por chamado, máximo de 2
-        chamados por mês durante o período de garantia.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        4.4 <Text style={pdfStyles.bold}>PRAZO DE ATENDIMENTO:</Text> Resposta
-        em até 48 horas úteis; correções urgentes em até 5 dias úteis; demais
-        correções em até 10 dias úteis.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 4 — GARANTIA E SUPORTE
+ */
+const Clause4 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>CLÁUSULA 4 — GARANTIA E SUPORTE</Text>
+    <Text style={pdfStyles.paragraph}>
+      4.1 <Text style={pdfStyles.bold}>GARANTIA TÉCNICA:</Text> 60 dias corridos
+      após aceite final, limitada à correção de defeitos de funcionamento
+      conforme especificações originais do projeto.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      4.2 <Text style={pdfStyles.bold}>EXCLUSÕES DA GARANTIA:</Text>{' '}
+      Modificações realizadas por terceiros, instalação em ambiente inadequado,
+      uso fora das especificações originais ou problemas decorrentes de
+      atualizações de terceiros.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      4.3 <Text style={pdfStyles.bold}>SUPORTE GRATUITO:</Text> Limitado a
+      correções de bugs comprovados, até 2 horas por chamado, máximo de 2
+      chamados por mês durante o período de garantia.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      4.4 <Text style={pdfStyles.bold}>PRAZO DE ATENDIMENTO:</Text> Resposta em
+      até 48 horas úteis; correções urgentes em até 5 dias úteis; demais
+      correções em até 10 dias úteis.
+    </Text>
+  </>
+);
 
-// CLÁUSULA 5 — PROPRIEDADE INTELECTUAL
-const Clause5 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>
-        CLÁUSULA 5 — PROPRIEDADE INTELECTUAL
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        5.1 <Text style={pdfStyles.bold}>DIREITOS AUTORAIS:</Text> O CONTRATADO
-        mantém os direitos autorais sobre o código desenvolvido, concedendo ao
-        CONTRATANTE licença de uso conforme Lei nº 9.609/1998. Cessão de
-        direitos patrimoniais mediante negociação específica.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        5.2 <Text style={pdfStyles.bold}>LICENÇA DE USO:</Text> Concede-se ao
-        CONTRATANTE licença não exclusiva para uso interno do sistema, incluindo
-        modificações necessárias para adequação ao negócio. Vedada a revenda ou
-        sublicenciamento comercial.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        5.3 <Text style={pdfStyles.bold}>CÓDIGO-FONTE:</Text> Quando acordada
-        sua entrega, será disponibilizado após quitação integral do projeto,
-        podendo ser fornecido em etapas conforme pagamentos.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        5.4 <Text style={pdfStyles.bold}>COMPONENTES DE TERCEIROS:</Text>{' '}
-        Bibliotecas, frameworks e códigos desenvolvidos pelo CONTRATADO para
-        outros projetos permanecem de sua propriedade, mesmo quando integrados
-        ao projeto atual.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 5 — PROPRIEDADE INTELECTUAL
+ */
+const Clause5 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>
+      CLÁUSULA 5 — PROPRIEDADE INTELECTUAL
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      5.1 <Text style={pdfStyles.bold}>DIREITOS AUTORAIS:</Text> O CONTRATADO
+      mantém os direitos autorais sobre o código desenvolvido, concedendo ao
+      CONTRATANTE licença de uso conforme Lei nº 9.609/1998. Cessão de direitos
+      patrimoniais mediante negociação específica.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      5.2 <Text style={pdfStyles.bold}>LICENÇA DE USO:</Text> Concede-se ao
+      CONTRATANTE licença não exclusiva para uso interno do sistema, incluindo
+      modificações necessárias para adequação ao negócio. Vedada a revenda ou
+      sublicenciamento comercial.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      5.3 <Text style={pdfStyles.bold}>CÓDIGO-FONTE:</Text> Quando acordada sua
+      entrega, será disponibilizado após quitação integral do projeto, podendo
+      ser fornecido em etapas conforme pagamentos.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      5.4 <Text style={pdfStyles.bold}>COMPONENTES DE TERCEIROS:</Text>{' '}
+      Bibliotecas, frameworks e códigos desenvolvidos pelo CONTRATADO para
+      outros projetos permanecem de sua propriedade, mesmo quando integrados ao
+      projeto atual.
+    </Text>
+  </>
+);
 
-// CLÁUSULA 6 — PROTEÇÃO DE DADOS (LGPD)
-const Clause6 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>
-        CLÁUSULA 6 — PROTEÇÃO DE DADOS (LGPD)
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        6.1 O CONTRATANTE é o Controlador dos dados pessoais que serão
-        processados pelo sistema; o CONTRATADO atua como Operador quando houver
-        acesso a dados pessoais durante o desenvolvimento.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        6.2 <Text style={pdfStyles.bold}>COMPROMISSOS DO CONTRATADO:</Text>{' '}
-        Implementar medidas de segurança adequadas ao projeto, comunicar
-        eventuais incidentes em até 48 horas, tratar dados apenas conforme
-        necessário ao desenvolvimento e eliminar dados de teste após entrega.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        6.3 <Text style={pdfStyles.bold}>RESPONSABILIDADES:</Text> O CONTRATANTE
-        responde pela conformidade legal do tratamento de dados no sistema. O
-        CONTRATADO responde pela implementação adequada das medidas de segurança
-        acordadas, excluindo-se eventos externos não previsíveis.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 6 — PROTEÇÃO DE DADOS (LGPD)
+ */
+const Clause6 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>
+      CLÁUSULA 6 — PROTEÇÃO DE DADOS (LGPD)
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      6.1 O CONTRATANTE é o Controlador dos dados pessoais que serão processados
+      pelo sistema; o CONTRATADO atua como Operador quando houver acesso a dados
+      pessoais durante o desenvolvimento.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      6.2 <Text style={pdfStyles.bold}>COMPROMISSOS DO CONTRATADO:</Text>{' '}
+      Implementar medidas de segurança adequadas ao projeto, comunicar eventuais
+      incidentes em até 48 horas, tratar dados apenas conforme necessário ao
+      desenvolvimento e eliminar dados de teste após entrega.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      6.3 <Text style={pdfStyles.bold}>RESPONSABILIDADES:</Text> O CONTRATANTE
+      responde pela conformidade legal do tratamento de dados no sistema. O
+      CONTRATADO responde pela implementação adequada das medidas de segurança
+      acordadas, excluindo-se eventos externos não previsíveis.
+    </Text>
+  </>
+);
 
-// CLÁUSULA 7 — RESCISÃO
-const Clause7 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>CLÁUSULA 7 — RESCISÃO</Text>
-      <Text style={pdfStyles.paragraph}>
-        7.1 <Text style={pdfStyles.bold}>CONSUMIDOR PESSOA FÍSICA:</Text>{' '}
-        Direito de arrependimento em 7 dias corridos conforme CDC, com devolução
-        proporcional descontando-se horas efetivamente trabalhadas e custos
-        administrativos.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        7.2 <Text style={pdfStyles.bold}>PESSOA JURÍDICA:</Text> Rescisão
-        antecipada mediante acordo entre as partes, com pagamento proporcional
-        dos trabalhos executados e multa compensatória de 10% sobre o valor
-        remanescente.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        7.3 <Text style={pdfStyles.bold}>RESCISÃO POR JUSTA CAUSA:</Text>{' '}
-        Qualquer das partes pode rescindir por descumprimento contratual grave,
-        mediante notificação e prazo de 5 dias para regularização. Em caso de
-        conduta inadequada comprovada, rescisão imediata com multa de 15%.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 7 — RESCISÃO
+ */
+const Clause7 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>CLÁUSULA 7 — RESCISÃO</Text>
+    <Text style={pdfStyles.paragraph}>
+      7.1 <Text style={pdfStyles.bold}>CONSUMIDOR PESSOA FÍSICA:</Text> Direito
+      de arrependimento em 7 dias corridos conforme CDC, com devolução
+      proporcional descontando-se horas efetivamente trabalhadas e custos
+      administrativos.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      7.2 <Text style={pdfStyles.bold}>PESSOA JURÍDICA:</Text> Rescisão
+      antecipada mediante acordo entre as partes, com pagamento proporcional dos
+      trabalhos executados e multa compensatória de 10% sobre o valor
+      remanescente.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      7.3 <Text style={pdfStyles.bold}>RESCISÃO POR JUSTA CAUSA:</Text> Qualquer
+      das partes pode rescindir por descumprimento contratual grave, mediante
+      notificação e prazo de 5 dias para regularização. Em caso de conduta
+      inadequada comprovada, rescisão imediata com multa de 15%.
+    </Text>
+  </>
+);
 
-// CLÁUSULA 8 — LIMITAÇÃO DE RESPONSABILIDADE
-const Clause8 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>
-        CLÁUSULA 8 — LIMITAÇÃO DE RESPONSABILIDADE
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        8.1 A responsabilidade do CONTRATADO limita-se aos danos diretos
-        comprovadamente decorrentes de falha técnica em sua prestação de
-        serviços.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        8.2 <Text style={pdfStyles.bold}>LIMITE FINANCEIRO:</Text> A
-        responsabilidade máxima do CONTRATADO fica limitada ao valor total do
-        contrato, exceto em casos de dolo ou violação de confidencialidade.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        8.3 <Text style={pdfStyles.bold}>EXCLUSÕES:</Text> Danos indiretos,
-        lucros cessantes, perda de oportunidade, eventos de força maior, falhas
-        de terceiros, alterações não autorizadas no código, problemas de
-        infraestrutura externa.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 8 — LIMITAÇÃO DE RESPONSABILIDADE
+ */
+const Clause8 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>
+      CLÁUSULA 8 — LIMITAÇÃO DE RESPONSABILIDADE
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      8.1 A responsabilidade do CONTRATADO limita-se aos danos diretos
+      comprovadamente decorrentes de falha técnica em sua prestação de serviços.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      8.2 <Text style={pdfStyles.bold}>LIMITE FINANCEIRO:</Text> A
+      responsabilidade máxima do CONTRATADO fica limitada ao valor total do
+      contrato, exceto em casos de dolo ou violação de confidencialidade.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      8.3 <Text style={pdfStyles.bold}>EXCLUSÕES:</Text> Danos indiretos, lucros
+      cessantes, perda de oportunidade, eventos de força maior, falhas de
+      terceiros, alterações não autorizadas no código, problemas de
+      infraestrutura externa.
+    </Text>
+  </>
+);
 
-// CLÁUSULA 9 — SERVIÇOS ADICIONAIS
-const Clause9 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>
-        CLÁUSULA 9 — SERVIÇOS ADICIONAIS
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        9.1 Alterações no escopo original serão orçadas separadamente mediante
-        aprovação por escrito de ambas as partes.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        9.2 <Text style={pdfStyles.bold}>DEMANDAS ESPECIAIS:</Text>
-      </Text>
-      <Text style={pdfStyles.listItem}>
-        • <Text style={pdfStyles.bold}>Urgente</Text> (prazo reduzido em até
-        50%): acréscimo de 30%
-      </Text>
-      <Text style={pdfStyles.listItem}>
-        • <Text style={pdfStyles.bold}>Emergencial</Text> (fora do horário
-        comercial): acréscimo de 50%
-      </Text>
-      <Text style={pdfStyles.listItem}>
-        • <Text style={pdfStyles.bold}>Crítico</Text> (final de
-        semana/feriados): acréscimo de 80%
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 9 — SERVIÇOS ADICIONAIS
+ */
+const Clause9 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>CLÁUSULA 9 — SERVIÇOS ADICIONAIS</Text>
+    <Text style={pdfStyles.paragraph}>
+      9.1 Alterações no escopo original serão orçadas separadamente mediante
+      aprovação por escrito de ambas as partes.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      9.2 <Text style={pdfStyles.bold}>DEMANDAS ESPECIAIS:</Text>
+    </Text>
+    <Text style={pdfStyles.listItem}>
+      • <Text style={pdfStyles.bold}>Urgente</Text> (prazo reduzido em até 50%):
+      acréscimo de 30%
+    </Text>
+    <Text style={pdfStyles.listItem}>
+      • <Text style={pdfStyles.bold}>Emergencial</Text> (fora do horário
+      comercial): acréscimo de 50%
+    </Text>
+    <Text style={pdfStyles.listItem}>
+      • <Text style={pdfStyles.bold}>Crítico</Text> (final de semana/feriados):
+      acréscimo de 80%
+    </Text>
+  </>
+);
 
-// CLÁUSULA 10 — MODALIDADE E AUTONOMIA
-const Clause10 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>
-        CLÁUSULA 10 — MODALIDADE E AUTONOMIA
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        10.1 Prestação de serviços autônoma, preferencialmente remota, sem
-        vínculo empregatício. Horário de atendimento comercial: 9h às 18h
-        (horário de Brasília).
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        10.2 <Text style={pdfStyles.bold}>DEDICAÇÃO AO PROJETO:</Text> Para
-        projetos com duração superior a 60 dias, estimativa de dedicação de até
-        6 horas diárias, respeitando outros compromissos profissionais do
-        CONTRATADO.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        10.3 O CONTRATADO mantém autonomia técnica e metodológica na execução
-        dos serviços, podendo atender outros clientes concomitantemente.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 10 — MODALIDADE E AUTONOMIA
+ */
+const Clause10 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>
+      CLÁUSULA 10 — MODALIDADE E AUTONOMIA
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      10.1 Prestação de serviços autônoma, preferencialmente remota, sem vínculo
+      empregatício. Horário de atendimento comercial: 9h às 18h (horário de
+      Brasília).
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      10.2 <Text style={pdfStyles.bold}>DEDICAÇÃO AO PROJETO:</Text> Para
+      projetos com duração superior a 60 dias, estimativa de dedicação de até 6
+      horas diárias, respeitando outros compromissos profissionais do
+      CONTRATADO.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      10.3 O CONTRATADO mantém autonomia técnica e metodológica na execução dos
+      serviços, podendo atender outros clientes concomitantemente.
+    </Text>
+  </>
+);
 
-// CLÁUSULA 11 — HOSPEDAGEM E INFRAESTRUTURA
+/**
+ * CLÁUSULA 11 — HOSPEDAGEM E INFRAESTRUTURA
+ */
 const Clause11 = () => {
-  const d = getDataFromLC(localStorage, 'HoursForm');
-  const valorMensalidade =
-    d!.valorMensalidade && formatToBR(d!.valorMensalidade);
+  const calculatorData = getCalculatorData();
+  const hasMonthlyFee = calculatorData?.cobrarMensalidade;
+  const monthlyValue = calculatorData?.valorMensalidade
+    ? formatToBR(parseFloat(calculatorData.valorMensalidade))
+    : '';
+
   return (
     <>
       <Text style={pdfStyles.clauseTitle}>
         CLÁUSULA 11 — HOSPEDAGEM E INFRAESTRUTURA
       </Text>
       <Text style={pdfStyles.paragraph}>
-        {(!d!.cobrarMensalidade &&
-          '11.1 A hospedagem, domínio, certificados SSL e infraestrutura necessária são de responsabilidade do CONTRATANTE, salvo contratação expressa de serviços de gerenciamento.') ||
-          `11.1 Os serviços de hospedagem, domínio, SSL e infraestrutura serão gerenciados pelo CONTRATADO pelo valor mensal de ${valorMensalidade}, com reajuste anual de 5%. O serviço pode ser cancelado por qualquer das partes mediante aviso de 30 dias, com migração dos dados quando solicitado.
-          `}
+        {!hasMonthlyFee
+          ? '11.1 A hospedagem, domínio, certificados SSL e infraestrutura necessária são de responsabilidade do CONTRATANTE, salvo contratação expressa de serviços de gerenciamento.'
+          : `11.1 Os serviços de hospedagem, domínio, SSL e infraestrutura serão gerenciados pelo CONTRATADO pelo valor mensal de ${monthlyValue}, com reajuste anual de 5%. O serviço pode ser cancelado por qualquer das partes mediante aviso de 30 dias, com migração dos dados quando solicitado.`}
       </Text>
       <Text style={pdfStyles.paragraph}>
         11.2 O CONTRATADO não se responsabiliza por indisponibilidades ou perda
@@ -478,130 +623,129 @@ const Clause11 = () => {
   );
 };
 
-// CLÁUSULA 12 — CONFIDENCIALIDADE
-const Clause12 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>CLÁUSULA 12 — CONFIDENCIALIDADE</Text>
-      <Text style={pdfStyles.paragraph}>
-        12.1 As partes comprometem-se a manter sigilo sobre informações
-        confidenciais trocadas durante o projeto, pelo prazo de 2 anos após o
-        encerramento do contrato.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        12.2 O CONTRATADO poderá incluir o projeto em seu portfólio
-        profissional, preservando informações confidenciais e dados sensíveis do
-        CONTRATANTE.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 12 — CONFIDENCIALIDADE
+ */
+const Clause12 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>CLÁUSULA 12 — CONFIDENCIALIDADE</Text>
+    <Text style={pdfStyles.paragraph}>
+      12.1 As partes comprometem-se a manter sigilo sobre informações
+      confidenciais trocadas durante o projeto, pelo prazo de 2 anos após o
+      encerramento do contrato.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      12.2 O CONTRATADO poderá incluir o projeto em seu portfólio profissional,
+      preservando informações confidenciais e dados sensíveis do CONTRATANTE.
+    </Text>
+  </>
+);
 
-// CLÁUSULA 13 — TERCEIROS E DEPENDÊNCIAS
-const Clause13 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>
-        CLÁUSULA 13 — TERCEIROS E DEPENDÊNCIAS
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        13.1 O CONTRATADO informará sobre componentes de terceiros utilizados e
-        suas respectivas licenças quando relevante ao projeto.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        13.2 Alterações em APIs, bibliotecas ou serviços externos após a entrega
-        não constituem defeito do sistema. Adaptações necessárias serão tratadas
-        como serviços adicionais mediante novo orçamento.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 13 — TERCEIROS E DEPENDÊNCIAS
+ */
+const Clause13 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>
+      CLÁUSULA 13 — TERCEIROS E DEPENDÊNCIAS
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      13.1 O CONTRATADO informará sobre componentes de terceiros utilizados e
+      suas respectivas licenças quando relevante ao projeto.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      13.2 Alterações em APIs, bibliotecas ou serviços externos após a entrega
+      não constituem defeito do sistema. Adaptações necessárias serão tratadas
+      como serviços adicionais mediante novo orçamento.
+    </Text>
+  </>
+);
 
-// CLÁUSULA 14 — COBRANÇA E MEDIDAS LEGAIS
-const Clause14 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>
-        CLÁUSULA 14 — COBRANÇA E MEDIDAS LEGAIS
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        14.1 Em caso de inadimplência, será enviada notificação com prazo de 10
-        dias para regularização, seguida de tentativa de acordo amigável antes
-        de medidas judiciais.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        14.2 <Text style={pdfStyles.bold}>HONORÁRIOS ADVOCATÍCIOS:</Text> Em
-        caso de cobrança judicial, o devedor arcará com honorários advocatícios
-        de 20% sobre o valor da causa.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 14 — COBRANÇA E MEDIDAS LEGAIS
+ */
+const Clause14 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>
+      CLÁUSULA 14 — COBRANÇA E MEDIDAS LEGAIS
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      14.1 Em caso de inadimplência, será enviada notificação com prazo de 10
+      dias para regularização, seguida de tentativa de acordo amigável antes de
+      medidas judiciais.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      14.2 <Text style={pdfStyles.bold}>HONORÁRIOS ADVOCATÍCIOS:</Text> Em caso
+      de cobrança judicial, o devedor arcará com honorários advocatícios de 20%
+      sobre o valor da causa.
+    </Text>
+  </>
+);
 
-// CLÁUSULA 15 — ESPECIFICAÇÕES TÉCNICAS
-const Clause15 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>
-        CLÁUSULA 15 — ESPECIFICAÇÕES TÉCNICAS
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        15.1 <Text style={pdfStyles.bold}>REQUISITOS BÁSICOS:</Text>
-        Domínio e hospedagem adequada ao projeto, conexão à internet estável -
-        fornecidos pelo CONTRATANTE ou conforme acordo específico.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        15.2 <Text style={pdfStyles.bold}>ITENS DE ENTREGA:</Text> Sistema
-        funcional, documentação de uso, código-fonte quando acordado e estrutura
-        de dados conforme especificado na cláusula 2.3.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 15 — ESPECIFICAÇÕES TÉCNICAS
+ */
+const Clause15 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>
+      CLÁUSULA 15 — ESPECIFICAÇÕES TÉCNICAS
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      15.1 <Text style={pdfStyles.bold}>REQUISITOS BÁSICOS:</Text>
+      Domínio e hospedagem adequada ao projeto, conexão à internet estável -
+      fornecidos pelo CONTRATANTE ou conforme acordo específico.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      15.2 <Text style={pdfStyles.bold}>ITENS DE ENTREGA:</Text> Sistema
+      funcional, documentação de uso, código-fonte quando acordado e estrutura
+      de dados conforme especificado na cláusula 2.3.
+    </Text>
+  </>
+);
 
-// CLÁUSULA 16 — DISPOSIÇÕES FINAIS
-const Clause16 = () => {
-  return (
-    <>
-      <Text style={pdfStyles.clauseTitle}>
-        CLÁUSULA 16 — DISPOSIÇÕES FINAIS
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        16.1 <Text style={pdfStyles.bold}>VIGÊNCIA:</Text> O contrato permanece
-        válido até o cumprimento de todas as obrigações por ambas as partes.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        16.2 <Text style={pdfStyles.bold}>CLÁUSULAS PERMANENTES:</Text>{' '}
-        Propriedade intelectual, confidencialidade, limitação de
-        responsabilidade e proteção de dados permanecem válidas após
-        encerramento.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        16.3 <Text style={pdfStyles.bold}>COMUNICAÇÕES:</Text> Preferencialmente
-        por e-mail com confirmação de recebimento ou por meio físico com
-        comprovante de entrega.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        16.4 <Text style={pdfStyles.bold}>ASSINATURA ELETRÔNICA:</Text>{' '}
-        Reconhecida como válida conforme legislação vigente (Lei nº
-        14.063/2020).
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        16.5 <Text style={pdfStyles.bold}>LEGISLAÇÃO APLICÁVEL:</Text> Direito
-        brasileiro.
-      </Text>
-      <Text style={pdfStyles.paragraph}>
-        16.6 <Text style={pdfStyles.bold}>FORO:</Text> Comarca da sede do
-        CONTRATANTE ou CONTRATADO, conforme a situação, para dirimir eventuais
-        controvérsias, vedado à qualquer outro.
-      </Text>
-    </>
-  );
-};
+/**
+ * CLÁUSULA 16 — DISPOSIÇÕES FINAIS
+ */
+const Clause16 = () => (
+  <>
+    <Text style={pdfStyles.clauseTitle}>CLÁUSULA 16 — DISPOSIÇÕES FINAIS</Text>
+    <Text style={pdfStyles.paragraph}>
+      16.1 <Text style={pdfStyles.bold}>VIGÊNCIA:</Text> O contrato permanece
+      válido até o cumprimento de todas as obrigações por ambas as partes.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      16.2 <Text style={pdfStyles.bold}>CLÁUSULAS PERMANENTES:</Text>{' '}
+      Propriedade intelectual, confidencialidade, limitação de responsabilidade
+      e proteção de dados permanecem válidas após encerramento.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      16.3 <Text style={pdfStyles.bold}>COMUNICAÇÕES:</Text> Preferencialmente
+      por e-mail com confirmação de recebimento ou por meio físico com
+      comprovante de entrega.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      16.4 <Text style={pdfStyles.bold}>ASSINATURA ELETRÔNICA:</Text>{' '}
+      Reconhecida como válida conforme legislação vigente (Lei nº 14.063/2020).
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      16.5 <Text style={pdfStyles.bold}>LEGISLAÇÃO APLICÁVEL:</Text> Direito
+      brasileiro.
+    </Text>
+    <Text style={pdfStyles.paragraph}>
+      16.6 <Text style={pdfStyles.bold}>FORO:</Text> Comarca da sede do
+      CONTRATANTE ou CONTRATADO, conforme a situação, para dirimir eventuais
+      controvérsias, vedado à qualquer outro.
+    </Text>
+  </>
+);
 
-// Componente para assinatura
+/**
+ * Componente para seção de assinatura do contrato
+ */
 const SignatureSection = () => {
-  const d = getDataFromLC(localStorage, 'ContractForm');
+  const contractData = getContractData();
+  const contractLocation = contractData?.local || '[LOCAL NÃO INFORMADO]';
+
   return (
     <>
       <Text style={pdfStyles.paragraph}>
@@ -609,7 +753,8 @@ const SignatureSection = () => {
         em duas vias de igual teor e forma.
       </Text>
       <Text style={pdfStyles.paragraph}>
-        {d!.local}, ______ de ____________________________ de ______________.
+        {contractLocation}, ______ de ____________________________ de
+        ______________.
       </Text>
       <View style={pdfStyles.signatureSection}>
         <View style={pdfStyles.signatureBox}>
@@ -623,7 +768,9 @@ const SignatureSection = () => {
   );
 };
 
-// Documento principal - fluxo contínuo sem quebras forçadas
+/**
+ * Documento principal do contrato - fluxo contínuo sem quebras forçadas
+ */
 const ContractDocument = () => (
   <Document>
     <Page size='A4' style={pdfStyles.page}>
@@ -653,32 +800,30 @@ const ContractDocument = () => (
   </Document>
 );
 
-// Interface principal
-type Props = {
-  setCurrentComponent: (s: string) => void;
-  theme: ThemeAvailableColors;
-};
-
-export default function Contrato(props: Props) {
+/**
+ * Componente principal para interface de geração do contrato
+ */
+export default function Contrato({ setCurrentComponent, theme }: Props) {
   return (
     <div style={componentStyles.container}>
       <header style={componentStyles.header}>
         <h1
           style={{
             ...componentStyles.headerTitle,
-            color: props.theme.body.text,
+            color: theme.body.text,
           }}>
           Contrato de Desenvolvimento de Software
         </h1>
         <p
           style={{
             ...componentStyles.headerSubtitle,
-            color: props.theme.body.text,
+            color: theme.body.text,
           }}>
           Documento profissional com proteções jurídicas completas
         </p>
       </header>
 
+      {/* Seção de botão de download */}
       <div style={componentStyles.buttonsSection}>
         <PDFDownloadLink
           document={<ContractDocument />}
@@ -693,6 +838,7 @@ export default function Contrato(props: Props) {
         </PDFDownloadLink>
       </div>
 
+      {/* Grid de recursos do contrato */}
       <div style={componentStyles.featuresGrid}>
         <div style={componentStyles.featureCard('#3498db')}>
           <h3 style={componentStyles.featureTitle}>📋 Escopo Detalhado</h3>
@@ -727,6 +873,7 @@ export default function Contrato(props: Props) {
         </div>
       </div>
 
+      {/* Seção de aviso importante */}
       <div style={componentStyles.warningBox}>
         <strong style={componentStyles.warningTitle}>
           ⚠️ Lembrete Importante!!!
