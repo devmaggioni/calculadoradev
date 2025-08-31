@@ -1,10 +1,17 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import type { ThemeAvailableColors } from '../../styles/theme';
 import { Container } from './styles';
 import formatToBR from '../../utils/formatToBR';
 import getCurrentDifPrice from '../../utils/getCurrentDifPrice';
+
+const sanitizeFileName = (name: string) => {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // remove acentos
+    .replace(/[^a-zA-Z0-9-_]/g, '_'); // substitui caracteres inválidos
+};
 
 // Constantes para chaves do localStorage e configurações
 const STORAGE_KEYS = {
@@ -141,6 +148,10 @@ const generateBudgetPDF = async (
     const canvas = await html2canvas(element, {
       scale: PDF_CONFIG.SCALE,
       useCORS: true,
+      logging: false,
+      scrollY: -window.scrollY, // garante captura do topo
+      windowWidth: element.scrollWidth,
+      windowHeight: element.scrollHeight,
     });
 
     const imageData = canvas.toDataURL('image/png');
@@ -163,8 +174,10 @@ const generateBudgetPDF = async (
     pdf.addImage(imageData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
     // Salva o arquivo
-    const fileName = `orçamento-do-projeto-${projectName}.pdf`;
-    pdf.save(fileName);
+    const fileName = `orçamento-do-projeto-${sanitizeFileName(projectName)}.pdf`;
+    setTimeout(() => {
+      pdf.save(fileName);
+    }, 200);
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
     // Poderia mostrar uma notificação de erro ao usuário aqui
@@ -177,6 +190,7 @@ const generateBudgetPDF = async (
  */
 export default function Recibo({ setCurrentComponent, theme }: Props) {
   const componentRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // Obtém dados necessários usando memoização
   const calculatorData = useMemo(() => getCalculatorData(), []);
@@ -199,7 +213,14 @@ export default function Recibo({ setCurrentComponent, theme }: Props) {
       return;
     }
 
-    await generateBudgetPDF(componentRef.current, projectData.projectName);
+    try {
+      setIsGeneratingPDF(true);
+      await generateBudgetPDF(componentRef.current, projectData.projectName);
+    } catch (error) {
+      console.error('Erro durante a geração do PDF:', error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   /**
@@ -320,17 +341,20 @@ export default function Recibo({ setCurrentComponent, theme }: Props) {
         <button
           className='action-button'
           onClick={handleGeneratePDF}
-          disabled={!projectData}
+          disabled={!projectData || isGeneratingPDF}
           title={
             !projectData
               ? 'Dados do projeto não disponíveis'
-              : 'Gerar PDF do orçamento'
+              : isGeneratingPDF
+                ? 'Gerando PDF...'
+                : 'Gerar PDF do orçamento'
           }>
-          📄 Salvar Orçamento em PDF
+          {isGeneratingPDF ? '⏳ Salvando...' : '📄 Salvar Orçamento em PDF'}
         </button>
         <button
           className='action-button secondary'
-          onClick={() => setCurrentComponent('ContractForm')}>
+          onClick={() => setCurrentComponent('ContractForm')}
+          disabled={isGeneratingPDF}>
           📋 Emitir Contrato
         </button>
       </div>
